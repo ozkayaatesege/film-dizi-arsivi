@@ -1,8 +1,8 @@
 const express=require('express');
 const router=express.Router();
+const mediaController=require('../controllers/mediaController');
 
-router.get('/',(req,res)=>{
-    res.status(200).json({mesaj: "Tüm medya listesi yakında buraya gelecek!"});
-});
+//GET: '/api/media' adresine bir istek gelirse işi doğrudan Controller'daki getAllMedia fonksiyonuna devret
+router.get('/',mediaController.getAllMedia);
 
 module.exports=router;
