@@ -13,6 +13,24 @@ const getAllMedia=async (req,res)=>{
     }
 };
 
+//Tarayıcıdan gelen yeni film/dizi verisini karşılayan fonksiyon
+const addMedia=async(req,res)=>{
+    try{
+        const yeniMedya=req.body; //Gelen json verisi alınıyor
+        if(!yeniMedya.baslik || !yeniMedya.tur){
+            return res.status(400).json({mesaj: "Başlık ve tür (Film/Dizi) alanları zorunludur."});
+        }
+
+        const eklenenVeri=await mediaService.addMedia(yeniMedya);
+
+        //201 Created (Başarıyla oluşturuldu) kodu dönüyoruz.
+        res.status(201).json({mesaj:"Başarıyla Eklendi!",veri:eklenenVeri});
+    }catch (error) {
+        res.status(500).json({ mesaj: "Veri eklenirken bir hata oluştu", hata: error.message });
+    }
+}
+
 module.exports={
-    getAllMedia
+    getAllMedia,
+    addMedia
 };

@@ -20,6 +20,8 @@
   "homepage": "https://github.com/ozkayaatesege/film-dizi-arsivi#readme",
   "dependencies": {
     "express": "^5.2.1",
-    "sqlite3": "^6.0.1"
+    "sqlite3": "^6.0.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }

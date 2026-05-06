@@ -14,6 +14,31 @@ const getAllMedia = () => {
     });
 };
 
+//veri tabanına yeni kayıt eklmeme fonksiyonu
+const addMedia=(mediaData)=>{
+    return new Promise((resolve,reject)=>{
+        const query='INSERT INTO media (baslik,tur,kategori,durum,puan,notlar) VALUES (?, ?, ?, ?, ?, ?)';
+        const values=[
+            mediaData.baslik,
+            mediaData.tur,
+            mediaData.kategori || null,
+            mediaData.durum || 'İzlenecek',
+            mediaData.puan || 0,
+            mediaData.notlar || ''
+        ];
+
+        //Veri eklerken db.run kullanılır.
+        db.run(query,values,function(err){
+            if(err){
+                reject(err);
+            }else{
+                resolve({id:this.lastID,...mediaData});
+            }
+        });
+    });
+};
+
 module.exports = {
-    getAllMedia
+    getAllMedia,
+    addMedia
 };
