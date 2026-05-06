@@ -7,14 +7,15 @@ const PORT = 3000;
 // Gelen isteklerdeki JSON verilerini okuyabilmek için
 app.use(express.json());
 
-// Frontend klasörünü statik dosya olarak dışarı açıyoruz
 app.use(express.static(path.join(__dirname, 'frontend')));
 
-// API'nin çalıştığını test etmek için ilk endpoint
+const mediaRoutes=require('./backend/routes/mediaRoutes');
+app.use('/api/media',mediaRoutes);
+
 app.get('/api/test', (req, res) => {
     res.json({ 
         durum: 'Başarılı', 
-        mesaj: 'Backend tıkır tıkır çalışıyor! Kişisel Film ve Dizi Arşivi API ayağa kalktı.' 
+        mesaj: 'Backend çalışıyor! Kişisel Film ve Dizi Arşivi API ayağa kalktı.' 
     });
 });
 
