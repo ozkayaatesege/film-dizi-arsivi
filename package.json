@@ -1,0 +1,24 @@
+{
+  "name": "film-dizi-arsivi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ozkayaatesege/film-dizi-arsivi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ozkayaatesege/film-dizi-arsivi/issues"
+  },
+  "homepage": "https://github.com/ozkayaatesege/film-dizi-arsivi#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
