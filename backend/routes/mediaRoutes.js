@@ -73,4 +73,52 @@ router.get('/', mediaController.getAllMedia);
  */
 router.post('/', mediaController.addMedia);
 
+/**
+ * @swagger
+ * /api/media/{id}:
+ *   put:
+ *     summary: Mevcut bir filmi veya diziyi günceller
+ *     tags: [Media]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Güncellenecek medyanın ID'si
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Media'
+ *     responses:
+ *       200:
+ *         description: Kayıt başarıyla güncellendi
+ *       404:
+ *         description: Güncellenecek kayıt bulunamadı
+ */
+router.put('/:id', mediaController.updateMedia);
+
+/**
+ * @swagger
+ * /api/media/{id}:
+ *   delete:
+ *     summary: Bir filmi veya diziyi siler
+ *     tags: [Media]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Silinecek medyanın ID'si
+ *     responses:
+ *       200:
+ *         description: Kayıt başarıyla silindi
+ *       404:
+ *         description: Silinecek kayıt bulunamadı
+ */
+router.delete('/:id', mediaController.deleteMedia);
+
 module.exports = router;

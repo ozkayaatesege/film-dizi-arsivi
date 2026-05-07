@@ -1,10 +1,110 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="tr">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Film ve Dizi Arşivi</title>
-</head>
-<body>
-    <h1>Kişisel Film ve Dizi Arşivime Hoş Geldiniz!</h1>
-</body>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Kişisel Arşivim</h1>
+      <button id="yeniEkleBtn">Yeni İçerik Ekle</button>
+    </header>
+
+    <main>
+      <div id="listeKapsayici" class="grid-container">
+        <p>Veriler yükleniyor...</p>
+      </div>
+    </main>
+
+    <div id="eklemeModali" class="modal-arkaplan" style="display: none">
+      <div class="modal-icerik">
+        <h2>Yeni İçerik Ekle</h2>
+
+        <form id="eklemeFormu">
+          <div class="form-grup">
+            <label for="baslik">Başlık *</label>
+            <input
+              type="text"
+              id="baslik"
+              name="baslik"
+              required
+              placeholder="Örn: Top Gun: Maverick"
+            />
+          </div>
+
+          <div class="form-grup">
+            <label for="tur">Tür *</label>
+            <select id="tur" name="tur" required>
+              <option value="Film">Film</option>
+              <option value="Dizi">Dizi</option>
+              <option value="Belgesel">Belgesel</option>
+            </select>
+          </div>
+
+          <div class="form-grup">
+            <label for="kategori">Kategori</label>
+            <input
+              type="text"
+              id="kategori"
+              name="kategori"
+              placeholder="Aksiyon, Dram, Komedi..."
+            />
+          </div>
+
+          <div class="form-grup">
+            <label for="durum">Durum</label>
+            <select id="durum" name="durum">
+              <option value="İzlenecek">İzlenecek</option>
+              <option value="İzlendi">İzlendi</option>
+              <option value="Yarım Kaldı">Yarım Kaldı</option>
+            </select>
+          </div>
+
+          <div class="form-grup">
+            <label for="puan">Puan (1-10)</label>
+            <input
+              type="number"
+              id="puan"
+              name="puan"
+              min="1"
+              max="10"
+              step="0.1"
+              placeholder="Örn: 8.3"
+            />
+          </div>
+
+          <div class="form-grup">
+            <label for="notlar">Notlar</label>
+            <textarea
+              id="notlar"
+              name="notlar"
+              rows="3"
+              placeholder="Bu yapım hakkında ne düşünüyorsun?"
+            ></textarea>
+          </div>
+
+          <div class="modal-butonlar">
+            <button type="button" id="iptalBtn" class="btn-ikincil">
+              İptal
+            </button>
+            <button type="submit" class="btn-birincil">Kaydet</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="silmeModali" class="modal-arkaplan" style="display: none;">
+      <div class="modal-icerik" style="border-top: 5px solid #dc3545; max-width: 400px; text-align: center;">
+        <h2 style="color: #fdb912;">Emin misin?</h2>
+        <p id="silmeMetni" style="color: #dddddd; margin: 20px 0; font-size: 16px; line-height: 1.5;"></p>
+        <div class="modal-butonlar" style="justify-content: center;">
+          <button type="button" id="silmeIptalBtn" class="btn-ikincil">İptal</button>
+          <button type="button" id="silmeEvetBtn" class="btn-sil" style="flex: none; padding: 10px 30px;">Evet, Sil</button>
+        </div>
+      </div>
+    </div>
+    <script src="app.js"></script>
+  </body>
 </html>

@@ -38,7 +38,42 @@ const addMedia=(mediaData)=>{
     });
 };
 
+const updateMedia=(id,data)=>{
+    return new Promise((resolve,reject)=>{
+        //SQL Lite'nin update komutu ile o id'ye ait satırlar güncellenir
+        const sql=`UPDATE media 
+                     SET baslik = ?, tur = ?, kategori = ?, durum = ?, puan = ?, notlar = ? 
+                     WHERE id = ?`;
+
+        const params=[data.baslik,data.tur,data.kategori,data.durum,data.puan,data.notlar,id];
+        db.run(sql,params,function(err){
+            if(err){
+                reject(err);
+            }else{
+                resolve({id:id,changes:this.changes});
+            }
+        });
+
+    });
+};
+
+const deleteMedia=(id)=>{
+    return new Promise((resolve,reject)=>{
+        const sql=`DELETE FROM media WHERE id = ?`;
+
+        db.run(sql,[id],function(err){
+            if(err){
+                reject(err);
+            }else{
+                resolve({ id: id, changes: this.changes});
+            }
+        });
+    });
+};
+
 module.exports = {
     getAllMedia,
-    addMedia
+    addMedia,
+    updateMedia,
+    deleteMedia
 };
