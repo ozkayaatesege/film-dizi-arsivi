@@ -9,6 +9,41 @@
   <body>
     <header>
       <h1>Kişisel Arşivim</h1>
+      
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="text" id="aramaInput" placeholder="Arşivde film veya dizi ara..." />
+        
+        <select id="turFiltre">
+          <option value="Hepsi">Tüm Kategoriler</option>
+          <option value="Film">Filmler</option>
+          <option value="Dizi">Diziler</option>
+          <option value="Belgesel">Belgeseller</option>
+        </select>
+
+        <div class="coklu-secim-konteynir" id="cokluSecimKapsayici">
+          <div class="coklu-secim-kutu" id="cokluSecimGosterge">
+            <span id="secilenTurlerMetni">Tüm Türler</span>
+            <span class="ok-ikon">▼</span>
+          </div>
+          <div class="coklu-secim-liste" id="cokluSecimListesi">
+            <label><input type="checkbox" value="Aksiyon"> Aksiyon</label>
+            <label><input type="checkbox" value="Macera"> Macera</label>
+            <label><input type="checkbox" value="Dram"> Dram</label>
+            <label><input type="checkbox" value="Komedi"> Komedi</label>
+            <label><input type="checkbox" value="Suç"> Suç</label>
+            <label><input type="checkbox" value="Gerilim"> Gerilim</label>
+            <label><input type="checkbox" value="Gizem"> Gizem</label>
+            <label><input type="checkbox" value="Fantastik"> Fantastik</label>
+            <label><input type="checkbox" value="Bilim Kurgu"> Bilim Kurgu</label>
+            <label><input type="checkbox" value="Savaş"> Savaş</label>
+            <label><input type="checkbox" value="Animasyon"> Animasyon</label>
+            <label><input type="checkbox" value="Aile"> Aile</label>
+            <label><input type="checkbox" value="Tarih"> Tarih</label>
+            <label><input type="checkbox" value="Korku"> Korku</label>
+          </div>
+        </div>
+      </div>
+
       <button id="yeniEkleBtn">Yeni İçerik Ekle</button>
     </header>
 

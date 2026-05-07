@@ -23,6 +23,119 @@ header h1 {
     color: #fdb912; /* Sarı başlık */
 }
 
+/* --- ARAMA ÇUBUĞU VE FİLTRELER --- */
+#aramaInput {
+    padding: 10px 15px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #2b2b2b;
+    color: white;
+    font-size: 14px;
+    width: 300px; /* Çubuğun genişliği */
+    transition: border-color 0.3s;
+    outline: none;
+}
+
+/* Tıklanıp yazı yazılmaya başlandığında sarı parlama efekti */
+#aramaInput:focus {
+    border-color: #fdb912;
+}
+
+#turFiltre, #altTurFiltre {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    background-color: #2b2b2b;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+#turFiltre:focus, #altTurFiltre:focus {
+    border-color: #fdb912;
+}
+
+#turFiltre option, #altTurFiltre option {
+    background-color: #2b2b2b;
+    color: white;
+}
+
+/* ==================================================================== */
+/* --- YENİ EKLENEN KISIM: ÇOKLU SEÇİM (KUTU İÇİNE YAZMA) TASARIMI --- */
+/* ==================================================================== */
+
+/* Çoklu Seçim Ana Konteynırı */
+.coklu-secim-konteynir {
+    position: relative;
+    width: 250px;
+    user-select: none;
+}
+
+/* Seçilenlerin göründüğü kutu */
+.coklu-secim-kutu {
+    padding: 10px;
+    background-color: #2b2b2b;
+    border: 1px solid #555;
+    border-radius: 5px;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: border-color 0.3s;
+}
+
+.coklu-secim-kutu:hover {
+    border-color: #fdb912;
+}
+
+/* Açılır liste (Checkbox listesi) */
+.coklu-secim-liste {
+    display: none; /* Başlangıçta gizli */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    max-height: 250px;
+    overflow-y: auto;
+    background-color: #2b2b2b;
+    border: 1px solid #555;
+    border-top: none;
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    border-radius: 0 0 5px 5px;
+}
+
+/* Her bir tür seçeneği */
+.coklu-secim-liste label {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #ddd;
+    transition: background 0.2s;
+}
+
+.coklu-secim-liste label:hover {
+    background-color: #3d3d3d;
+    color: #fdb912;
+}
+
+.coklu-secim-liste input {
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+/* ==================================================================== */
+/* --- YENİ EKLENEN KISIM BİTİŞİ --- */
+/* ==================================================================== */
+
 #yeniEkleBtn {
     background-color: #a81025; /* Kırmızı buton */
     color: white;

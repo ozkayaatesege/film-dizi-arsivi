@@ -44,7 +44,7 @@ async function medyalariGetir() {
                 </div>
             `;
             
-            // --- DÜZENLE BUTONU İŞLEMLERİ ---
+            // DÜZENLE BUTONU İŞLEMLERİ 
             const duzenleBtn = kart.querySelector('.btn-duzenle');
             duzenleBtn.addEventListener('click', () => {
                 guncellenecekId = medya.id; 
@@ -139,7 +139,7 @@ eklemeFormu.addEventListener('submit', async (e) => {
     }
 });
 
-// --- YENİ: SİLME ONAY MODALI BİLEŞENLERİ VE İŞLEMLERİ ---
+// SİLME ONAY MODALI BİLEŞENLERİ VE İŞLEMLERİ
 const silmeModali = document.getElementById('silmeModali');
 const silmeIptalBtn = document.getElementById('silmeIptalBtn');
 const silmeEvetBtn = document.getElementById('silmeEvetBtn');
@@ -170,3 +170,84 @@ silmeEvetBtn.addEventListener('click', async () => {
         alert("Kayıt silinirken bir hata oluştu!");
     }
 });
+
+const aramaInput = document.getElementById('aramaInput');
+const turFiltre = document.getElementById('turFiltre');
+const cokluSecimGosterge = document.getElementById('cokluSecimGosterge');
+const cokluSecimListesi = document.getElementById('cokluSecimListesi');
+const secilenTurlerMetni = document.getElementById('secilenTurlerMetni');
+const checkboxes = document.querySelectorAll('#cokluSecimListesi input');
+
+let secilenTurler = [];
+
+// Kutuyu aç/kapat
+cokluSecimGosterge.addEventListener('click', () => {
+    const gorunurMu = cokluSecimListesi.style.display === 'block';
+    cokluSecimListesi.style.display = gorunurMu ? 'none' : 'block';
+});
+
+// Kutunun dışına tıklandığında listeyi kapat
+document.addEventListener('click', (e) => {
+    if (!document.getElementById('cokluSecimKapsayici').contains(e.target)) {
+        cokluSecimListesi.style.display = 'none';
+    }
+});
+
+// Herhangi bir tür seçildiğinde/çıkarıldığında
+checkboxes.forEach(cb => {
+    cb.addEventListener('change', () => {
+        // Seçilenleri diziye ekle/çıkar
+        if (cb.checked) {
+            secilenTurler.push(cb.value);
+        } else {
+            secilenTurler = secilenTurler.filter(t => t !== cb.value);
+        }
+
+        // Kutunun içindeki yazıyı güncelle
+        if (secilenTurler.length === 0) {
+            secilenTurlerMetni.innerText = "Tüm Türler";
+        } else {
+            secilenTurlerMetni.innerText = secilenTurler.join(', ');
+        }
+
+        filtreleriUygula();
+    });
+});
+
+const filtreleriUygula = () => {
+    const arananKelime = aramaInput.value.toLowerCase();
+    const secilenKategori = turFiltre.value;
+
+    const kartlar = document.querySelectorAll('.medya-kart');
+
+    kartlar.forEach(kart => {
+        const baslik = kart.querySelector('h3').innerText.toLowerCase();
+        const kategoriMetni = kart.querySelectorAll('p')[0].innerText; // Film/Dizi bilgisi
+        const altTurMetni = kart.querySelectorAll('p')[1].innerText;   // Aksiyon/Dram bilgisi
+
+        // İsim
+        const baslikEslesti = baslik.includes(arananKelime);
+        
+        // Ana Kategori (Film/Dizi)
+        const kategoriEslesti = (secilenKategori === 'Hepsi' || kategoriMetni.includes(secilenKategori));
+
+        // Çoklu Tür Kontrolü (OR mantığı - Seçilenlerden herhangi birini içeriyor mu?)
+        let turEslesti = false;
+        if (secilenTurler.length === 0) {
+            turEslesti = true; 
+        } else {
+            // Eğer kartın üzerindeki tür metni, seçtiğimiz türlerden herhangi birini içeriyorsa true döner
+            turEslesti = secilenTurler.some(tur => altTurMetni.includes(tur));
+        }
+
+        if (baslikEslesti && kategoriEslesti && turEslesti) {
+            kart.style.display = 'flex';
+        } else {
+            kart.style.display = 'none';
+        }
+    });
+};
+
+// Arama ve Kategori filtrelerini de motoru bağla
+aramaInput.addEventListener('input', filtreleriUygula);
+turFiltre.addEventListener('change', filtreleriUygula);
