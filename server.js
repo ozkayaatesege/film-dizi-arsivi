@@ -20,6 +20,15 @@ const swaggerOptions = {
                 url: `http://localhost:${PORT}`,
             },
         ],
+        components: {
+            securitySchemes: {
+                bearerAuth: {
+                    type: 'http',
+                    scheme: 'bearer',
+                    bearerFormat: 'JWT',
+                }
+            }
+        }
     },
     // Swagger'ın API kodlarını nerede arayacağını söylüyoruz
     apis: ['./backend/routes/*.js'], 
@@ -32,6 +41,11 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'frontend')));
 
+//Güvenlik Rotaları
+const authRoutes=require('./backend/routes/authRoutes');
+app.use('/api/auth',authRoutes);
+
+//Medya Rotaları
 const mediaRoutes = require('./backend/routes/mediaRoutes');
 app.use('/api/media', mediaRoutes);
 

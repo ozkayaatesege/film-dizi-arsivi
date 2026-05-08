@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const mediaController = require('../controllers/mediaController');
+const jwtInterceptor = require('../security/jwtInterceptor');
 
 /**
  * @swagger
@@ -59,6 +60,8 @@ router.get('/', mediaController.getAllMedia);
  *   post:
  *     summary: Yeni bir film veya dizi ekler
  *     tags: [Media]
+ *     security:
+ *       - bearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -71,7 +74,7 @@ router.get('/', mediaController.getAllMedia);
  *       400:
  *         description: Eksik parametre hatası
  */
-router.post('/', mediaController.addMedia);
+router.post('/', jwtInterceptor, mediaController.addMedia);
 
 /**
  * @swagger
@@ -79,6 +82,8 @@ router.post('/', mediaController.addMedia);
  *   put:
  *     summary: Mevcut bir filmi veya diziyi günceller
  *     tags: [Media]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -98,7 +103,7 @@ router.post('/', mediaController.addMedia);
  *       404:
  *         description: Güncellenecek kayıt bulunamadı
  */
-router.put('/:id', mediaController.updateMedia);
+router.put('/:id', jwtInterceptor, mediaController.updateMedia);
 
 /**
  * @swagger
@@ -106,6 +111,8 @@ router.put('/:id', mediaController.updateMedia);
  *   delete:
  *     summary: Bir filmi veya diziyi siler
  *     tags: [Media]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
@@ -119,6 +126,6 @@ router.put('/:id', mediaController.updateMedia);
  *       404:
  *         description: Silinecek kayıt bulunamadı
  */
-router.delete('/:id', mediaController.deleteMedia);
+router.delete('/:id', jwtInterceptor, mediaController.deleteMedia);
 
 module.exports = router;
