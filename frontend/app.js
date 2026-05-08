@@ -1,9 +1,39 @@
 let guncellenecekId = null; 
-let silinecekId = null; // Silinecek filmin ID'sini hafızada tutmak için yeni değişken
+let silinecekId = null; 
 
 document.addEventListener('DOMContentLoaded', () => {
     medyalariGetir();
 });
+
+// ARAYÜZ YETKİ KONTROL MOTORU
+// Bu fonksiyon, kullanıcının giriş yapıp yapmadığını kontrol eder ve butonları ona göre gizler/gösterir
+function arayuzuGuncelle() {
+    const token = localStorage.getItem('token');
+    const kartButonGruptari = document.querySelectorAll('.kart-butonlar');
+    
+    // Header butonlarını ayarla
+    const yeniEkleBtn = document.getElementById('yeniEkleBtn');
+    const authModalAcBtn = document.getElementById('authModalAcBtn');
+    const cikisYapBtn = document.getElementById('cikisYapBtn');
+
+    if (token) {
+        // VIP Kart (Token) var -> Kullanıcı giriş yapmış (Admin yetkileri açık)
+        yeniEkleBtn.style.display = 'block';
+        cikisYapBtn.style.display = 'block';
+        authModalAcBtn.style.display = 'none';
+        
+        // Tüm kartlardaki Düzenle/Sil butonlarını görünür yap
+        kartButonGruptari.forEach(grup => grup.style.display = 'flex');
+    } else {
+        // Token yok -> Ziyaretçi modu (Sadece okuma)
+        yeniEkleBtn.style.display = 'none';
+        cikisYapBtn.style.display = 'none';
+        authModalAcBtn.style.display = 'block';
+        
+        // Tüm kartlardaki Düzenle/Sil butonlarını gizle
+        kartButonGruptari.forEach(grup => grup.style.display = 'none');
+    }
+}
 
 async function medyalariGetir() {
     const kapsayici = document.getElementById('listeKapsayici');
@@ -56,30 +86,31 @@ async function medyalariGetir() {
                 document.getElementById('puan').value = medya.puan || '';
                 document.getElementById('notlar').value = medya.notlar || '';
                 
-                document.querySelector('.modal-icerik h2').innerText = 'İçeriği Düzenle';
-                eklemeModali.style.display = 'flex';
+                document.querySelector('#eklemeModali .modal-icerik h2').innerText = 'İçeriği Düzenle';
+                document.getElementById('eklemeModali').style.display = 'flex';
             });
 
-            // --- YENİ: ÖZEL SİLME MODALINI AÇMA İŞLEMLERİ ---
+            // SİLME MODALINI AÇMA İŞLEMLERİ
             const silBtn = kart.querySelector('.btn-sil');
             silBtn.addEventListener('click', () => {
-                silinecekId = medya.id; // Hangi filmin silineceğini hafızaya al
+                silinecekId = medya.id; 
                 
-                // Türüne göre doğru ek eki ayarla (film-ini, dizi-sini, belgesel-ini)
                 let turEki = 'yapımını';
                 if (medya.tur === 'Film') turEki = 'filmini';
                 if (medya.tur === 'Dizi') turEki = 'dizisini';
                 if (medya.tur === 'Belgesel') turEki = 'belgeselini';
 
-                // Modalın içindeki yazıyı dinamik olarak oluştur
                 document.getElementById('silmeMetni').innerHTML = `<strong>${medya.baslik}</strong> ${turEki} arşivden tamamen silmek istediğinize emin misiniz?`;
-                
-                // Modalı görünür yap
                 document.getElementById('silmeModali').style.display = 'flex';
             });
 
             kapsayici.appendChild(kart);
         });
+
+        // Veriler ekrana basıldıktan HEMEN SONRA yetki kontrolü yap ki ziyaretçiler butonları görmesin
+        arayuzuGuncelle();
+        // Aynı zamanda filtreleri de yeniden uygula ki görünüm bozulmasın
+        filtreleriUygula();
 
     } catch (error) {
         console.error("Hata:", error);
@@ -87,7 +118,103 @@ async function medyalariGetir() {
     }
 }
 
-// --- EKLEME/DÜZENLEME MODALI BİLEŞENLERİ ---
+// GÜVENLİK (AUTH) MODALI İŞLEMLERİ
+const authModalAcBtn = document.getElementById('authModalAcBtn');
+const cikisYapBtn = document.getElementById('cikisYapBtn');
+const authModali = document.getElementById('authModali');
+const authFormu = document.getElementById('authFormu');
+const authIptalBtn = document.getElementById('authIptalBtn');
+const authModDegistir = document.getElementById('authModDegistir');
+const authBaslik = document.getElementById('authBaslik');
+const authSubmitBtn = document.getElementById('authSubmitBtn');
+const authSoruMetni = document.getElementById('authSoruMetni');
+
+let isLoginMode = true; // true = Giriş Yap, false = Kayıt Ol
+
+// Modalı aç
+authModalAcBtn.addEventListener('click', () => {
+    isLoginMode = true; // Her açıldığında varsayılan olarak "Giriş Yap" modunda başlasın
+    authFormunuAyarla();
+    authModali.style.display = 'flex';
+});
+
+// Modalı kapat
+authIptalBtn.addEventListener('click', () => {
+    authModali.style.display = 'none';
+    authFormu.reset();
+});
+
+// Giriş <-> Kayıt Ol arası geçiş yap
+authModDegistir.addEventListener('click', (e) => {
+    e.preventDefault();
+    isLoginMode = !isLoginMode; // Modu tam tersine çevir
+    authFormunuAyarla();
+});
+
+function authFormunuAyarla() {
+    if (isLoginMode) {
+        authBaslik.innerText = 'Giriş Yap';
+        authSubmitBtn.innerText = 'Giriş Yap';
+        authSoruMetni.innerText = 'Hesabınız yok mu?';
+        authModDegistir.innerText = 'Kayıt Ol';
+    } else {
+        authBaslik.innerText = 'Kayıt Ol';
+        authSubmitBtn.innerText = 'Kayıt Ol';
+        authSoruMetni.innerText = 'Zaten hesabınız var mı?';
+        authModDegistir.innerText = 'Giriş Yap';
+    }
+}
+
+// Form Gönderildiğinde (Giriş veya Kayıt)
+authFormu.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const kullanici_adi = document.getElementById('kullanici_adi').value;
+    const sifre = document.getElementById('sifre').value;
+    
+    // Hangi yola (endpoint) istek atacağımızı moda göre belirliyoruz
+    const url = isLoginMode ? '/api/auth/login' : '/api/auth/register';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kullanici_adi, sifre })
+        });
+
+        const veri = await response.json();
+
+        if (!response.ok) {
+            alert(veri.mesaj || 'İşlem başarısız!');
+            return;
+        }
+
+        if (isLoginMode) {
+            // Giriş başarılıysa token'ı kasaya sakla
+            localStorage.setItem('token', veri.token);
+            authModali.style.display = 'none';
+            authFormu.reset();
+            arayuzuGuncelle(); // Arayüzü admin moduna geçir
+        } else {
+            // Kayıt başarılıysa kullanıcıyı bilgilendir ve giriş moduna at
+            alert('Kayıt başarılı! Lütfen şimdi giriş yapın.');
+            isLoginMode = true;
+            authFormunuAyarla();
+            document.getElementById('sifre').value = ''; // Şifre kutusunu temizle
+        }
+
+    } catch (error) {
+        console.error("Auth hatası:", error);
+        alert("Sunucuya bağlanırken bir hata oluştu.");
+    }
+});
+
+// Çıkış Yap İşlemi
+cikisYapBtn.addEventListener('click', () => {
+    localStorage.removeItem('token'); // Kasadaki bileti yırt
+    arayuzuGuncelle(); // Arayüzü tekrar ziyaretçi moduna geçir
+});
+
+// EKLEME/DÜZENLEME İŞLEMLERİ
 const yeniEkleBtn = document.getElementById('yeniEkleBtn');
 const eklemeModali = document.getElementById('eklemeModali');
 const iptalBtn = document.getElementById('iptalBtn');
@@ -119,14 +246,26 @@ eklemeFormu.addEventListener('submit', async (e) => {
     
     const url = guncellenecekId ? `/api/media/${guncellenecekId}` : '/api/media';
     const method = guncellenecekId ? 'PUT' : 'POST';
+    const token = localStorage.getItem('token'); // Token'ı kasadan al
 
     try {
         const response = await fetch(url, {
             method: method,
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` // YENİ: Bekçiye token'ı gösteriyoruz
+            },
             body: JSON.stringify(medyaVerisi)
         });
         
+        if (response.status === 401 || response.status === 403) {
+            alert("Oturum süreniz dolmuş veya yetkiniz yok. Lütfen tekrar giriş yapın.");
+            localStorage.removeItem('token');
+            arayuzuGuncelle();
+            eklemeModali.style.display = 'none';
+            return;
+        }
+
         if (!response.ok) throw new Error('İşlem başarısız oldu');
 
         eklemeModali.style.display = 'none';    
@@ -139,29 +278,38 @@ eklemeFormu.addEventListener('submit', async (e) => {
     }
 });
 
-// SİLME ONAY MODALI BİLEŞENLERİ VE İŞLEMLERİ
+// SİLME İŞLEMLERİ
 const silmeModali = document.getElementById('silmeModali');
 const silmeIptalBtn = document.getElementById('silmeIptalBtn');
 const silmeEvetBtn = document.getElementById('silmeEvetBtn');
 
-// İptale basılırsa sadece pencereyi kapat
 silmeIptalBtn.addEventListener('click', () => {
     silmeModali.style.display = 'none';
     silinecekId = null; 
 });
 
-// Evet, Sil butonuna basılırsa işlemi gerçekleştir
 silmeEvetBtn.addEventListener('click', async () => {
     if (!silinecekId) return;
+    const token = localStorage.getItem('token');
 
     try {
         const response = await fetch(`/api/media/${silinecekId}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}` // YENİ: Silme işlemi için de bekçiye token gösteriyoruz
+            }
         });
         
+        if (response.status === 401 || response.status === 403) {
+            alert("Oturum süreniz dolmuş veya yetkiniz yok. Lütfen tekrar giriş yapın.");
+            localStorage.removeItem('token');
+            arayuzuGuncelle();
+            silmeModali.style.display = 'none';
+            return;
+        }
+
         if (!response.ok) throw new Error('Silme işlemi başarısız oldu');
         
-        // Başarılıysa modalı kapat ve listeyi yenile
         silmeModali.style.display = 'none';
         silinecekId = null;
         medyalariGetir(); 
@@ -171,6 +319,7 @@ silmeEvetBtn.addEventListener('click', async () => {
     }
 });
 
+// ÇOKLU SEÇİM VE FİLTRELEME MOTORU
 const aramaInput = document.getElementById('aramaInput');
 const turFiltre = document.getElementById('turFiltre');
 const cokluSecimGosterge = document.getElementById('cokluSecimGosterge');
@@ -180,30 +329,25 @@ const checkboxes = document.querySelectorAll('#cokluSecimListesi input');
 
 let secilenTurler = [];
 
-// Kutuyu aç/kapat
 cokluSecimGosterge.addEventListener('click', () => {
     const gorunurMu = cokluSecimListesi.style.display === 'block';
     cokluSecimListesi.style.display = gorunurMu ? 'none' : 'block';
 });
 
-// Kutunun dışına tıklandığında listeyi kapat
 document.addEventListener('click', (e) => {
     if (!document.getElementById('cokluSecimKapsayici').contains(e.target)) {
         cokluSecimListesi.style.display = 'none';
     }
 });
 
-// Herhangi bir tür seçildiğinde/çıkarıldığında
 checkboxes.forEach(cb => {
     cb.addEventListener('change', () => {
-        // Seçilenleri diziye ekle/çıkar
         if (cb.checked) {
             secilenTurler.push(cb.value);
         } else {
             secilenTurler = secilenTurler.filter(t => t !== cb.value);
         }
 
-        // Kutunun içindeki yazıyı güncelle
         if (secilenTurler.length === 0) {
             secilenTurlerMetni.innerText = "Tüm Türler";
         } else {
@@ -222,21 +366,16 @@ const filtreleriUygula = () => {
 
     kartlar.forEach(kart => {
         const baslik = kart.querySelector('h3').innerText.toLowerCase();
-        const kategoriMetni = kart.querySelectorAll('p')[0].innerText; // Film/Dizi bilgisi
-        const altTurMetni = kart.querySelectorAll('p')[1].innerText;   // Aksiyon/Dram bilgisi
+        const kategoriMetni = kart.querySelectorAll('p')[0].innerText; 
+        const altTurMetni = kart.querySelectorAll('p')[1].innerText;   
 
-        // İsim
         const baslikEslesti = baslik.includes(arananKelime);
-        
-        // Ana Kategori (Film/Dizi)
         const kategoriEslesti = (secilenKategori === 'Hepsi' || kategoriMetni.includes(secilenKategori));
 
-        // Çoklu Tür Kontrolü (OR mantığı - Seçilenlerden herhangi birini içeriyor mu?)
         let turEslesti = false;
         if (secilenTurler.length === 0) {
             turEslesti = true; 
         } else {
-            // Eğer kartın üzerindeki tür metni, seçtiğimiz türlerden herhangi birini içeriyorsa true döner
             turEslesti = secilenTurler.some(tur => altTurMetni.includes(tur));
         }
 
@@ -248,6 +387,5 @@ const filtreleriUygula = () => {
     });
 };
 
-// Arama ve Kategori filtrelerini de motoru bağla
 aramaInput.addEventListener('input', filtreleriUygula);
 turFiltre.addEventListener('change', filtreleriUygula);
