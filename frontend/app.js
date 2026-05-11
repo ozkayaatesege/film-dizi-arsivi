@@ -17,7 +17,7 @@ function arayuzuGuncelle() {
     const cikisYapBtn = document.getElementById('cikisYapBtn');
 
     if (token) {
-        // VIP Kart (Token) var -> Kullanıcı giriş yapmış (Admin yetkileri açık)
+        // Token var -> Kullanıcı giriş yapmış (Admin yetkileri açık)
         yeniEkleBtn.style.display = 'block';
         cikisYapBtn.style.display = 'block';
         authModalAcBtn.style.display = 'none';
@@ -39,7 +39,13 @@ async function medyalariGetir() {
     const kapsayici = document.getElementById('listeKapsayici');
 
     try {
-        const response = await fetch('/api/media');
+        const token = localStorage.getItem('token');
+        const headers = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch('/api/media', { headers });
         if (!response.ok) throw new Error('Veriler çekilemedi');
         const veriler = await response.json();
 
@@ -74,7 +80,6 @@ async function medyalariGetir() {
                 </div>
             `;
             
-            // DÜZENLE BUTONU İŞLEMLERİ 
             const duzenleBtn = kart.querySelector('.btn-duzenle');
             duzenleBtn.addEventListener('click', () => {
                 guncellenecekId = medya.id; 
@@ -90,7 +95,6 @@ async function medyalariGetir() {
                 document.getElementById('eklemeModali').style.display = 'flex';
             });
 
-            // SİLME MODALINI AÇMA İŞLEMLERİ
             const silBtn = kart.querySelector('.btn-sil');
             silBtn.addEventListener('click', () => {
                 silinecekId = medya.id; 
@@ -107,9 +111,7 @@ async function medyalariGetir() {
             kapsayici.appendChild(kart);
         });
 
-        // Veriler ekrana basıldıktan HEMEN SONRA yetki kontrolü yap ki ziyaretçiler butonları görmesin
         arayuzuGuncelle();
-        // Aynı zamanda filtreleri de yeniden uygula ki görünüm bozulmasın
         filtreleriUygula();
 
     } catch (error) {

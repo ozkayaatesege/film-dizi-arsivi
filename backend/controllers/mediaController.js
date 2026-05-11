@@ -1,15 +1,34 @@
 const mediaService=require('../services/mediaService');
+const jwt=require('jsonwebtoken');
+
+// Şifre çözerken kullanacağımız anahtar (Interceptor'daki ile aynı olmalı)
+const JWT_SECRET='benim_cok_gizli_anahtarim_123';
 
 //Tarayıcıdan gelen isteği karşılayıp servise yönlendiren fonksiyon
 const getAllMedia=async (req,res)=>{
     try{
+        let userId=null;
 
-        const data=await mediaService.getAllMedia();
+        // GET isteğinin önünde bekçi yok ama eğer gelen istekte Token varsa onu alıyoruz
+        const authHeader =req.headers['authorization'];
+        if(authHeader){
+            const token =authHeader.split(' ')[1];
 
-        //veri başarıyla gelirse tarayıcıya 200 (OK) koduyla sunuyoruz
+            try{
+                // Token sahte değilse, sahibinin ID'sini alıyoruz
+                const decoded=jwt.verify(token,JWT_SECRET);
+                userId=decoded.id;
+            }catch(error){
+                // Token geçersizse veya süresi dolmuşsa direkt olarak ziyaretçi olarak devam et
+            }
+        }
+
+        //Eğer user id doluysa Servis bize kişisel arşivi getirecek
+        //Eğer usesr id boşsa(null) SErvis bize verilerin ortalama puanını gösteren bir liste getirecek
+        const data=await mediaService.getAllMedia(userId);
         res.status(200).json(data);
     }catch(error){
-        res.status(500).json({mesaj:"Veriler çekilirken bir hata oluştu",hata:error.message})
+        res.status(500).json({mesaj:"Veriler çekilirken bir hata oluştu",hata:error.message});
     }
 };
 
@@ -17,11 +36,14 @@ const getAllMedia=async (req,res)=>{
 const addMedia=async(req,res)=>{
     try{
         const yeniMedya=req.body; //Gelen json verisi alınıyor
+        const userId=req.userId;  //Güvenliğimizden gelen kullanıcı kimliği
+
         if(!yeniMedya.baslik || !yeniMedya.tur){
             return res.status(400).json({mesaj: "Başlık ve tür (Film/Dizi) alanları zorunludur."});
         }
 
-        const eklenenVeri=await mediaService.addMedia(yeniMedya);
+        //Film eklenirken servise bu filni ekleyen kişi bu adam diyebiliyoruz(Girilen userId verisi sayesinde)
+        const eklenenVeri=await mediaService.addMedia(yeniMedya,userId);
 
         //201 Created (Başarıyla oluşturuldu) kodu dönüyoruz.
         res.status(201).json({mesaj:"Başarıyla Eklendi!",veri:eklenenVeri});
@@ -39,8 +61,10 @@ const updateMedia=async (req,res)=>{
         //Formdan gelen yeni bilgiler alınıyor
         const guncelVeri=req.body;
 
-        //Service dosyasında yazdığımız updateMEdia fonksiyonuna ID ve veriyi gönderiyoruz
-        const sonuc=await mediaService.updateMedia(id,guncelVeri);
+        const userId=req.userId; //Güvenlikten gelen kullanıcı kimliği
+
+        //Service dosyasında yazdığımız updateMEdia fonksiyonuna ID , veriyi ve Sahiplik kimliğini  gönderiyoruz
+        const sonuc=await mediaService.updateMedia(id,guncelVeri,userId);
 
         if(sonuc.changes===0){
             return res.status(404).json({mesaj:"Güncellenecek kayıt bulunamadı!"});
@@ -56,8 +80,10 @@ const updateMedia=async (req,res)=>{
 const deleteMedia=async(req,res)=>{
     try{
         const id=req.params.id;
+        const userId=req.userId;
 
-        const sonuc=await mediaService.deleteMedia(id);
+        // Servise silinecek filmi ve silmek isteyen kişiyi yolluyoruz
+        const sonuc=await mediaService.deleteMedia(id,userId);
 
         if(sonuc.changes===0){
             return res.status(404).json({mesaj:"Silinecek kayıt bulunamadı"});

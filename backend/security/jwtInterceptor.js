@@ -20,7 +20,7 @@ const verifyToken=(req,res,next)=>{
             return res.status(401).json({mesaj:'Oturum süreniz dolmuş veya geçersiz token.'});
         }
         //Kullanıcının ID'sinin bir sonraki adıma aktarmak için req içine koyuyoruz
-        req.user_id=decoded.id;
+        req.userId = decoded.id;
         next();
     });
 };
