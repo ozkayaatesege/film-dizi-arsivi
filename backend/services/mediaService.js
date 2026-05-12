@@ -1,4 +1,4 @@
-const db = require('../models/database');
+const db = require('../config/database');
 
 // Tüm filmleri ve dizileri veritabanından çeken fonksiyon (Vİtrin ve Kişisel panel ayrımı)
 const getAllMedia = (userId) => {

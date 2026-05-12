@@ -2,7 +2,7 @@ const express = require('express');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
-
+require('dotenv').config();
 const app = express();
 const PORT = 3000;
 

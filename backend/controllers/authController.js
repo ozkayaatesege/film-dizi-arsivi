@@ -1,59 +1,50 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const db = require('../models/database');
+const authService = require('../services/authService');
 
-const JWT_SECRET = 'benim_cok_gizli_anahtarim_123'; 
+// KAYIT OLMA YÖNLENDİRMESİ
+const register = async (req, res) => {
+    try {
+        const { kullanici_adi, sifre } = req.body;
 
-// KAYIT OLMA MOTORU
-const register = (req, res) => {
-    const { kullanici_adi, sifre } = req.body;
-
-    if (!kullanici_adi || !sifre) {
-        return res.status(400).json({ mesaj: 'Kullanıcı adı ve şifre zorunludur.' });
-    }
-
-    // Şifreyi güvenlik standartlarına göre hashliyoruz (şifreliyoruz)
-    const hashedPassword = bcrypt.hashSync(sifre, 8);
-
-    const sql = `INSERT INTO users (kullanici_adi, sifre) VALUES (?, ?)`;
-    
-    db.run(sql, [kullanici_adi, hashedPassword], function(err) {
-        if (err) {
-            // Eğer aynı kullanıcı adıyla biri daha kayıt olmaya çalışırsa (UNIQUE kuralı)
-            if (err.message.includes('UNIQUE constraint failed')) {
-                return res.status(400).json({ mesaj: 'Bu kullanıcı adı zaten alınmış, lütfen başka bir tane deneyin.' });
-            }
-            return res.status(500).json({ mesaj: 'Veritabanı hatası oluştu.', error: err.message });
+        // Temel doğrulama
+        if (!kullanici_adi || !sifre) {
+            return res.status(400).json({ mesaj: 'Kullanıcı adı ve şifre zorunludur.' });
         }
-        res.status(201).json({ mesaj: 'Kayıt işlemi başarıyla tamamlandı!', userId: this.lastID });
-    });
+
+        // İsteği Service'e iletiyoruz
+        const result = await authService.register(kullanici_adi, sifre);
+        
+        // Mutfaktan başarıyla dönerse müşteriye sunuyoruz
+        res.status(201).json({ mesaj: 'Kayıt işlemi başarıyla tamamlandı!', userId: result.userId });
+    } catch (error) {
+        // Mutfaktan bir hata fırlatılırsa (Örn: İsim alınmış)
+        const statusCode = error.status || 500;
+        res.status(statusCode).json({ mesaj: error.mesaj, error: error.error });
+    }
 };
 
-// GİRİŞ YAPMA MOTORU
-const login = (req, res) => {
-    const { kullanici_adi, sifre } = req.body;
+// GİRİŞ YAPMA YÖNLENDİRMESİ
+const login = async (req, res) => {
+    try {
+        const { kullanici_adi, sifre } = req.body;
 
-    const sql = `SELECT * FROM users WHERE kullanici_adi = ?`;
-    
-    db.get(sql, [kullanici_adi], (err, user) => {
-        if (err) return res.status(500).json({ mesaj: 'Veritabanı hatası oluştu.' });
-        
-        // Kullanıcı veritabanında yoksa
-        if (!user) return res.status(404).json({ mesaj: 'Böyle bir kullanıcı bulunamadı.' });
+        if (!kullanici_adi || !sifre) {
+            return res.status(400).json({ mesaj: 'Kullanıcı adı ve şifre zorunludur.' });
+        }
 
-        // Kullanıcı var, peki şifresi doğru mu? (Hashlenmiş şifre ile girilen şifreyi karşılaştırıyoruz)
-        const passwordIsValid = bcrypt.compareSync(sifre, user.sifre);
-        if (!passwordIsValid) return res.status(401).json({ mesaj: 'Hatalı şifre girdiniz.' });
+        // Giriş isteğini service'e iletiyoruz
+        const result = await authService.login(kullanici_adi, sifre);
 
-        // Şifre de doğruysa VIP Kartı (JWT) üret! (Geçerlilik süresini 24 saat)
-        const token = jwt.sign({ id: user.id, kullanici_adi: user.kullanici_adi }, JWT_SECRET, { expiresIn: '24h' });
-
+        // Service'den Token başarıyla geldiyse
         res.status(200).json({ 
             message: 'Giriş başarılı!', 
-            token: token, 
-            kullanici_adi: user.kullanici_adi 
+            token: result.token, 
+            kullanici_adi: result.kullanici_adi 
         });
-    });
+    } catch (error) {
+        // Hatalı şifre veya kullanıcı yoksa
+        const statusCode = error.status || 500;
+        res.status(statusCode).json({ mesaj: error.mesaj });
+    }
 };
 
 module.exports = { register, login };

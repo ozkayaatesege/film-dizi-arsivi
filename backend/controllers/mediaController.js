@@ -1,8 +1,7 @@
 const mediaService=require('../services/mediaService');
 const jwt=require('jsonwebtoken');
 
-// Şifre çözerken kullanacağımız anahtar (Interceptor'daki ile aynı olmalı)
-const JWT_SECRET='benim_cok_gizli_anahtarim_123';
+const JWT_SECRET = process.env.JWT_SECRET;
 
 //Tarayıcıdan gelen isteği karşılayıp servise yönlendiren fonksiyon
 const getAllMedia=async (req,res)=>{

@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-// authController.js dosyasında kullandığımız şifrenin birebir aynısı
-const JWT_SECRET='benim_cok_gizli_anahtarim_123'
+const JWT_SECRET = process.env.JWT_SECRET;
 
 //İsteklerin arasına giren fonksiyon
 const verifyToken=(req,res,next)=>{
