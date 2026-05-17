@@ -8,6 +8,25 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // KAYIT OLMA İŞ MANTIĞI
 const register = (kullanici_adi, sifre) => {
     return new Promise((resolve, reject) => {
+
+        // İş kuralı: Kullanıcı adı veya şifre boş olamaz
+        if (!kullanici_adi || !sifre || kullanici_adi.trim() === '' || sifre.trim() === '') {
+            return reject({ status: 400, mesaj: 'Kullanıcı adı ve şifre boş bırakılamaz.' });
+        }
+
+        //İş kuralı: Şifre uzunluğu kontrolü
+        if(sifre.length<6){
+            return reject({status:400,mesaj:'Şifre en az 6 karakter içermelidir.'});
+        }
+
+        // İş kuralı: Şifre en az bir harf ve en az bir rakam içermelidir
+        const harfVarMi = /[a-zA-Z]/.test(sifre);
+        const rakamVarMi = /\d/.test(sifre);
+
+        if (!harfVarMi || !rakamVarMi) {
+            return reject({ status: 400, mesaj: 'Şifreniz en az bir harf ve en az bir rakam içermelidir.' });
+        }
+
         // Şifreyi güvenlik standartlarına göre hashliyoruz
         const hashedPassword = bcrypt.hashSync(sifre, 8);
         const sql = `INSERT INTO users (kullanici_adi, sifre) VALUES (?, ?)`;

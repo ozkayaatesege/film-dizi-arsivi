@@ -2,29 +2,29 @@
   "name": "film-dizi-arsivi",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "server.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ozkayaatesege/film-dizi-arsivi.git"
   },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/ozkayaatesege/film-dizi-arsivi/issues"
-  },
-  "homepage": "https://github.com/ozkayaatesege/film-dizi-arsivi#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "open": "^11.0.0",
     "sqlite3": "^6.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
 }

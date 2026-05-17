@@ -42,6 +42,21 @@ const getAllMedia = (userId) => {
 //veri tabanına yeni kayıt eklmeme fonksiyonu (Sahibinin kimliği ile beraber)
 const addMedia=(mediaData,userId)=>{
     return new Promise((resolve,reject)=>{
+
+        // İş kuralı: İzlenmemiş (İzlenecek) durumdaki bir yapıma puan verilemez
+        if (mediaData.durum === 'İzlenecek' && mediaData.puan > 0) {
+            return reject({ status: 400, mesaj: 'Henüz izlemediğiniz bir yapıma puan veremezsiniz.' });
+        }
+
+        //İş kuralı: Başlık boş olamaz
+        if (!mediaData.baslik || mediaData.baslik.trim() === '') {
+            return reject({ status: 400, mesaj: 'Film veya dizi başlığı boş bırakılamaz.' });
+        }
+
+        if(mediaData.puan<0 || mediaData.puan>10){
+            return reject({status:400,mesaj:'Puan 0 ile 10 arasında olmalıdır.'});
+        }
+
         const query='INSERT INTO media (kullanici_id,baslik,tur,kategori,durum,puan,notlar) VALUES (?, ?, ?, ?, ?, ?,?)';
         const values=[
             userId,

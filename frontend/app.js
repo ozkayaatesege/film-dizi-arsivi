@@ -1,5 +1,5 @@
-let guncellenecekId = null;
-let silinecekId = null;
+let guncellenecekId = null;  //Düzenlenecek filmin id'si tutuluyor
+let silinecekId = null;      //Silinecek filmin'in id'si tutuluyor
 
 document.addEventListener("DOMContentLoaded", () => {
   medyalariGetir();
@@ -15,12 +15,14 @@ function arayuzuGuncelle() {
   const yeniEkleBtn = document.getElementById("yeniEkleBtn");
   const authModalAcBtn = document.getElementById("authModalAcBtn");
   const cikisYapBtn = document.getElementById("cikisYapBtn");
+  const durumFiltreKapsayici = document.getElementById("durumFiltreKapsayici");
 
   if (token) {
     // Token var -> Kullanıcı giriş yapmış (Admin yetkileri açık)
     yeniEkleBtn.style.display = "block";
     cikisYapBtn.style.display = "block";
     authModalAcBtn.style.display = "none";
+    durumFiltreKapsayici.style.display = "flex";
 
     // Tüm kartlardaki Düzenle/Sil butonlarını görünür yap
     kartButonGruptari.forEach((grup) => (grup.style.display = "flex"));
@@ -29,6 +31,7 @@ function arayuzuGuncelle() {
     yeniEkleBtn.style.display = "none";
     cikisYapBtn.style.display = "none";
     authModalAcBtn.style.display = "block";
+    durumFiltreKapsayici.style.display = "none";
 
     // Tüm kartlardaki Düzenle/Sil butonlarını gizle
     kartButonGruptari.forEach((grup) => (grup.style.display = "none"));
@@ -50,7 +53,7 @@ async function medyalariGetir() {
     const veriler = await response.json();
 
     if (veriler.length === 0) {
-      kapsayici.innerHTML = "<p>Arşive henüz bir kayıt bulunmuyor</p>";
+      kapsayici.innerHTML = "<p>Arşivde henüz bir kayıt bulunmuyor</p>";
       return;
     }
 
@@ -223,7 +226,7 @@ authFormu.addEventListener("submit", async (e) => {
 cikisYapBtn.addEventListener("click", () => {
   localStorage.removeItem("token"); // Kasadaki bileti yırt
   arayuzuGuncelle(); // Arayüzü tekrar ziyaretçi moduna geçir
-  medyalariGetir(); //Topluluk arşivini getir
+  medyalariGetir(); //Topluluk arşivini getirx"
 });
 
 // EKLEME/DÜZENLEME İŞLEMLERİ
@@ -376,21 +379,45 @@ checkboxes.forEach((cb) => {
   });
 });
 
+const durumHaplari = document.querySelectorAll(".durum-hap");
+let secilenDurum = "Hepsi"; // Varsayılan olarak her şeyi göster
+
+durumHaplari.forEach((hap) => {
+  hap.addEventListener("click", () => {
+    durumHaplari.forEach((h) => h.classList.remove("aktif"));
+    // Tıklanan butonu sarı yap
+    hap.classList.add("aktif");
+    
+    // Tıklanan butonun değerini al (İzlendi, İzlenecek vb.)
+    secilenDurum = hap.getAttribute("data-durum");
+    
+    // Değişiklik sonrası listeyi tekrar süz
+    filtreleriUygula();
+  });
+});
+
+// ANA FİLTRELEME FONKSİYONU
 const filtreleriUygula = () => {
-  const arananKelime = aramaInput.value.toLowerCase();
+  const arananKelime = aramaInput.value.toLocaleLowerCase('tr-TR');
   const secilenKategori = turFiltre.value;
 
   const kartlar = document.querySelectorAll(".medya-kart");
 
   kartlar.forEach((kart) => {
-    const baslik = kart.querySelector("h3").innerText.toLowerCase();
-    const kategoriMetni = kart.querySelectorAll("p")[0].innerText;
-    const altTurMetni = kart.querySelectorAll("p")[1].innerText;
+    const baslik = kart.querySelector("h3").innerText.toLocaleLowerCase('tr-TR');
+    
+    // Kartın içindeki p etiketlerinden verileri çekiyoruz
+    const kategoriMetni = kart.querySelectorAll("p")[0].innerText; // Tür: Film
+    const altTurMetni = kart.querySelectorAll("p")[1].innerText;   // Kategori: Aksiyon
+    const durumMetni = kart.querySelectorAll("p")[2].innerText;    // Durum: İzlendi
 
+    // 1. Şart: İsim eşleşiyor mu?
     const baslikEslesti = baslik.includes(arananKelime);
-    const kategoriEslesti =
-      secilenKategori === "Hepsi" || kategoriMetni.includes(secilenKategori);
+    
+    // 2. Şart: Kategoriler (Film/Dizi) uyuyor mu?
+    const kategoriEslesti = secilenKategori === "Hepsi" || kategoriMetni.includes(secilenKategori);
 
+    // 3. Şart: Çoklu seçim (Aksiyon, Dram vb.) uyuyor mu?
     let turEslesti = false;
     if (secilenTurler.length === 0) {
       turEslesti = true;
@@ -398,7 +425,11 @@ const filtreleriUygula = () => {
       turEslesti = secilenTurler.some((tur) => altTurMetni.includes(tur));
     }
 
-    if (baslikEslesti && kategoriEslesti && turEslesti) {
+    // 4. Şart: Üstteki hap butonlardan seçilen durum uyuyor mu?
+    const durumEslesti = secilenDurum === "Hepsi" || durumMetni.includes(secilenDurum);
+
+    // Bütün şartlsrdan geçiyorsa kartı göster, birinden bile kalsa gizle
+    if (baslikEslesti && kategoriEslesti && turEslesti && durumEslesti) {
       kart.style.display = "flex";
     } else {
       kart.style.display = "none";
