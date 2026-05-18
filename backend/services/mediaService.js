@@ -1,5 +1,35 @@
 const db = require('../config/database');
 
+const runRules=(...rules)=>{
+    for(let ruleError of rules){
+        if(ruleError !== null) return ruleError;
+    }
+    return null;
+};
+
+//İŞ KURALLARI
+const checkUnwatchedScore=(durum,puan)=>{
+    if(durum === 'İzlenecek' && puan>0){
+        return {status:400,mesaj:'Henüz izlemediğiniz bir yapıma puan veremezsiniz.'};
+    }
+    return null;
+};
+
+const chechEmptyTitle = (baslik)=>{
+    if(!baslik || baslik.trim()===''){
+        return {status:400,mesaj:'Film veya Dizi başlığı boş bırakılmaz.'};
+    }
+    return null;
+};
+
+const checkScoreLimit=(puan)=>{
+    if(puan<0 || puan>10){
+        return {status:400,mesaj:'Puan 0 ile 10 arasında olmalı.'};
+    }
+    return null;
+};
+
+
 // Tüm filmleri ve dizileri veritabanından çeken fonksiyon (Vİtrin ve Kişisel panel ayrımı)
 const getAllMedia = (userId) => {
     return new Promise((resolve, reject) => {
@@ -43,20 +73,20 @@ const getAllMedia = (userId) => {
 const addMedia=(mediaData,userId)=>{
     return new Promise((resolve,reject)=>{
 
-        // İş kuralı: İzlenmemiş (İzlenecek) durumdaki bir yapıma puan verilemez
-        if (mediaData.durum === 'İzlenecek' && mediaData.puan > 0) {
-            return reject({ status: 400, mesaj: 'Henüz izlemediğiniz bir yapıma puan veremezsiniz.' });
-        }
+       const durum = mediaData.durum || 'İzlenecek';
+       const puan = mediaData.puan || 0;
 
-        //İş kuralı: Başlık boş olamaz
-        if (!mediaData.baslik || mediaData.baslik.trim() === '') {
-            return reject({ status: 400, mesaj: 'Film veya dizi başlığı boş bırakılamaz.' });
-        }
+       const ruleResult=runRules(
+        checkUnwatchedScore(durum,puan),
+        chechEmptyTitle(mediaData.baslik),
+        checkScoreLimit(puan)
+       );
 
-        if(mediaData.puan<0 || mediaData.puan>10){
-            return reject({status:400,mesaj:'Puan 0 ile 10 arasında olmalıdır.'});
-        }
+       if(ruleResult !==null){
+        return reject(ruleResult);
+       }
 
+       //Veri tabanına ekleme
         const query='INSERT INTO media (kullanici_id,baslik,tur,kategori,durum,puan,notlar) VALUES (?, ?, ?, ?, ?, ?,?)';
         const values=[
             userId,
@@ -82,6 +112,18 @@ const addMedia=(mediaData,userId)=>{
 //Sadecebu veriyi giren güncelleyebilir
 const updateMedia=(id,data,userId)=>{
     return new Promise((resolve,reject)=>{
+
+        const ruleResult=runRules(
+            checkUnwatchedScore(data.durum,data.puan),
+            chechEmptyTitle(data.baslik),
+            checkScoreLimit(data.puan)
+        );
+
+        if(ruleResult !==null){
+            return reject(ruleResult);
+        }
+
+
         //SQL Lite'nin update komutu ile o id'ye ait satırlar güncellenir
         const sql = `UPDATE media 
                      SET baslik = ?, tur = ?, kategori = ?, durum = ?, puan = ?, notlar = ? 
