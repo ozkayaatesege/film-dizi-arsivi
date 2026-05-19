@@ -33,6 +33,7 @@ const checkPasswordContent=(sifre)=>{
     if(!harfVarMi || !rakamVarMi){
         return {status:400,mesaj:'Şifreniz en az bir harf ve en az bir rakam içermelidir.'}
     }
+    return null;
 }
 
 // KAYIT OLMA İŞ MANTIĞI
@@ -78,11 +79,11 @@ const login = (kullanici_adi, sifre) => {
             if (err) return reject({ status: 500, mesaj: 'Veritabanı hatası oluştu.' });
             
             // Kullanıcı veritabanında yoksa
-            if (!user) return reject({ status: 404, mesaj: 'Böyle bir kullanıcı bulunamadı.' });
+            if (!user) return reject({ status: 404, mesaj: 'Kullanıcı adı veya şifreniz yanlış.' });
 
             // Şifre kontrolü
             const passwordIsValid = bcrypt.compareSync(sifre, user.sifre);
-            if (!passwordIsValid) return reject({ status: 401, mesaj: 'Hatalı şifre girdiniz.' });
+            if (!passwordIsValid) return reject({ status: 401, mesaj: 'Kullanıcı adı veya şifreniz yanlış.' });
 
             // Şifre doğruysa Token üret
             const token = jwt.sign({ id: user.id, kullanici_adi: user.kullanici_adi }, JWT_SECRET, { expiresIn: '24h' });

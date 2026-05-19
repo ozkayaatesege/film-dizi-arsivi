@@ -52,7 +52,7 @@ const getAllMedia = (userId) => {
                     tur, 
                     MAX(kategori) as kategori, 
                     'Topluluk Arşivi' as durum, 
-                    ROUND(AVG(puan), 1) as puan, 
+                    ROUND(AVG(CASE WHEN durum='İzlendi' THEN puan END),1) as puan, 
                     'Kişisel notlar ziyaretçilere gizlidir.' as notlar 
                 FROM media 
                 GROUP BY baslik, tur 

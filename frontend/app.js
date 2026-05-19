@@ -5,6 +5,68 @@ document.addEventListener("DOMContentLoaded", () => {
   medyalariGetir();
 });
 
+// BİLDİRİM MODALI — alert() yerine kullanılan güzel modal
+function mesajGoster(mesaj, tip = "hata") {
+  // Varsa önceki modalı temizle
+  const eskiModal = document.getElementById("bildirimModali");
+  if (eskiModal) eskiModal.remove();
+
+  const renkler = {
+    hata:   { baslik: "Bir Sorun Oluştu", buton: "#e53e3e", butonHover: "#c53030" },
+    basari: { baslik: "İşlem Başarılı",   buton: "#38a169", butonHover: "#2f855a" },
+    bilgi:  { baslik: "Bilgi",            buton: "#3182ce", butonHover: "#2b6cb0" },
+  };
+
+  const r = renkler[tip] || renkler.hata;
+
+  const modal = document.createElement("div");
+  modal.id = "bildirimModali";
+  modal.style.cssText = `
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+  `;
+
+  modal.innerHTML = `
+    <div style="
+      background: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 32px 28px;
+      max-width: 420px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    ">
+      <h2 style="color: #f0c040; margin: 0 0 16px; font-size: 1.3rem;">${r.baslik}</h2>
+      <p style="color: #ccc; margin: 0 0 24px; line-height: 1.5;">${mesaj}</p>
+      <button id="bildirimKapatBtn" style="
+        background: ${r.buton};
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 32px;
+        font-size: 1rem;
+        cursor: pointer;
+        width: 100%;
+      ">Tamam</button>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  const kapatBtn = document.getElementById("bildirimKapatBtn");
+  kapatBtn.addEventListener("click", () => modal.remove());
+  kapatBtn.addEventListener("mouseenter", () => kapatBtn.style.background = r.butonHover);
+  kapatBtn.addEventListener("mouseleave", () => kapatBtn.style.background = r.buton);
+
+  // Arka plana tıklayınca da kapat
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
 // ARAYÜZ YETKİ KONTROL MOTORU
 // Bu fonksiyon, kullanıcının giriş yapıp yapmadığını kontrol eder ve butonları ona göre gizler/gösterir
 function arayuzuGuncelle() {
@@ -64,31 +126,31 @@ async function medyalariGetir() {
       kart.className = "medya-kart";
 
       let puanVeNotGosterimi = '';
-if (medya.durum !== 'İzlenecek') {
-    const token = localStorage.getItem('token');
-    
-    let notGosterimi = '';
-    if (token) {
-        notGosterimi = `<p><strong>Not:</strong> ${medya.notlar || 'Not yok.'}</p>`;
-    }
+      if (medya.durum !== 'İzlenecek') {
+        const token = localStorage.getItem('token');
 
-    puanVeNotGosterimi = `
-        <p><strong>Puan:</strong> ${medya.puan}/10</p>
-        ${notGosterimi}
-    `;
-}
+        let notGosterimi = '';
+        if (token) {
+          notGosterimi = `<p><strong>Not:</strong> ${medya.notlar || 'Not yok.'}</p>`;
+        }
+
+        puanVeNotGosterimi = `
+          <p><strong>Puan:</strong> ${medya.puan}/10</p>
+          ${notGosterimi}
+        `;
+      }
 
       kart.innerHTML = `
-                <h3>${medya.baslik}</h3>
-                <p><strong>Tür:</strong> ${medya.tur}</p>
-                <p><strong>Kategori:</strong> ${medya.kategori || "Belirtilmedi"}</p>
-                <p><strong>Durum:</strong> ${medya.durum}</p>
-                ${puanVeNotGosterimi}
-                <div class="kart-butonlar">
-                    <button class="btn-duzenle">Düzenle</button>
-                    <button class="btn-sil">Sil</button>
-                </div>
-            `;
+        <h3>${medya.baslik}</h3>
+        <p><strong>Tür:</strong> ${medya.tur}</p>
+        <p><strong>Kategori:</strong> ${medya.kategori || "Belirtilmedi"}</p>
+        <p><strong>Durum:</strong> ${medya.durum}</p>
+        ${puanVeNotGosterimi}
+        <div class="kart-butonlar">
+          <button class="btn-duzenle">Düzenle</button>
+          <button class="btn-sil">Sil</button>
+        </div>
+      `;
 
       const duzenleBtn = kart.querySelector(".btn-duzenle");
       duzenleBtn.addEventListener("click", () => {
@@ -101,8 +163,7 @@ if (medya.durum !== 'İzlenecek') {
         document.getElementById("puan").value = medya.puan || "";
         document.getElementById("notlar").value = medya.notlar || "";
 
-        document.querySelector("#eklemeModali .modal-icerik h2").innerText =
-          "İçeriği Düzenle";
+        document.querySelector("#eklemeModali .modal-icerik h2").innerText = "İçeriği Düzenle";
         document.getElementById("eklemeModali").style.display = "flex";
       });
 
@@ -198,7 +259,7 @@ authFormu.addEventListener("submit", async (e) => {
     const veri = await response.json();
 
     if (!response.ok) {
-      alert(veri.mesaj || "İşlem başarısız!");
+      mesajGoster(veri.mesaj || "İşlem başarısız!", "hata");
       return;
     }
 
@@ -211,14 +272,14 @@ authFormu.addEventListener("submit", async (e) => {
       medyalariGetir(); //Yeni kullanıcının verilerini getir
     } else {
       // Kayıt başarılıysa kullanıcıyı bilgilendir ve giriş moduna at
-      alert("Kayıt başarılı! Lütfen şimdi giriş yapın.");
+      mesajGoster("Kayıt başarılı! Lütfen şimdi giriş yapın.", "basari");
       isLoginMode = true;
       authFormunuAyarla();
       document.getElementById("sifre").value = ""; // Şifre kutusunu temizle
     }
   } catch (error) {
     console.error("Auth hatası:", error);
-    alert("Sunucuya bağlanırken bir hata oluştu.");
+    mesajGoster("Sunucuya bağlanırken bir hata oluştu.", "hata");
   }
 });
 
@@ -226,7 +287,7 @@ authFormu.addEventListener("submit", async (e) => {
 cikisYapBtn.addEventListener("click", () => {
   localStorage.removeItem("token"); // Kasadaki bileti yırt
   arayuzuGuncelle(); // Arayüzü tekrar ziyaretçi moduna geçir
-  medyalariGetir(); //Topluluk arşivini getirx"
+  medyalariGetir(); //Topluluk arşivini getir
 });
 
 // EKLEME/DÜZENLEME İŞLEMLERİ
@@ -271,14 +332,15 @@ eklemeFormu.addEventListener("submit", async (e) => {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // YENİ: Bekçiye token'ı gösteriyoruz
+        Authorization: `Bearer ${token}`, // Bekçiye token'ı gösteriyoruz
       },
       body: JSON.stringify(medyaVerisi),
     });
 
     if (response.status === 401 || response.status === 403) {
-      alert(
+      mesajGoster(
         "Oturum süreniz dolmuş veya yetkiniz yok. Lütfen tekrar giriş yapın.",
+        "hata"
       );
       localStorage.removeItem("token");
       arayuzuGuncelle();
@@ -286,14 +348,26 @@ eklemeFormu.addEventListener("submit", async (e) => {
       return;
     }
 
-    if (!response.ok) throw new Error("İşlem başarısız oldu");
+    const veri = await response.json();
+
+    if (!response.ok) {
+      mesajGoster(veri.mesaj || "İşlem başarısız oldu.", "hata");
+      return;
+    }
 
     eklemeModali.style.display = "none";
     eklemeFormu.reset();
+
+    if (guncellenecekId) {
+      mesajGoster("Değişiklikleriniz başarıyla kaydedildi.", "basari");
+    } else {
+      mesajGoster("İçerik arşive başarıyla eklendi!", "basari");
+    }
+
     medyalariGetir();
   } catch (error) {
     console.error("Hata:", error);
-    alert("Bir hata oluştu!");
+    mesajGoster("Bir hata oluştu!", "hata");
   }
 });
 
@@ -315,13 +389,14 @@ silmeEvetBtn.addEventListener("click", async () => {
     const response = await fetch(`/api/media/${silinecekId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`, // YENİ: Silme işlemi için de bekçiye token gösteriyoruz
+        Authorization: `Bearer ${token}`, // Silme işlemi için de bekçiye token gösteriyoruz
       },
     });
 
     if (response.status === 401 || response.status === 403) {
-      alert(
+      mesajGoster(
         "Oturum süreniz dolmuş veya yetkiniz yok. Lütfen tekrar giriş yapın.",
+        "hata"
       );
       localStorage.removeItem("token");
       arayuzuGuncelle();
@@ -336,7 +411,7 @@ silmeEvetBtn.addEventListener("click", async () => {
     medyalariGetir();
   } catch (error) {
     console.error("Hata:", error);
-    alert("Kayıt silinirken bir hata oluştu!");
+    mesajGoster("Kayıt silinirken bir hata oluştu!", "hata");
   }
 });
 
@@ -387,10 +462,10 @@ durumHaplari.forEach((hap) => {
     durumHaplari.forEach((h) => h.classList.remove("aktif"));
     // Tıklanan butonu sarı yap
     hap.classList.add("aktif");
-    
+
     // Tıklanan butonun değerini al (İzlendi, İzlenecek vb.)
     secilenDurum = hap.getAttribute("data-durum");
-    
+
     // Değişiklik sonrası listeyi tekrar süz
     filtreleriUygula();
   });
@@ -405,7 +480,7 @@ const filtreleriUygula = () => {
 
   kartlar.forEach((kart) => {
     const baslik = kart.querySelector("h3").innerText.toLocaleLowerCase('tr-TR');
-    
+
     // Kartın içindeki p etiketlerinden verileri çekiyoruz
     const kategoriMetni = kart.querySelectorAll("p")[0].innerText; // Tür: Film
     const altTurMetni = kart.querySelectorAll("p")[1].innerText;   // Kategori: Aksiyon
@@ -413,7 +488,7 @@ const filtreleriUygula = () => {
 
     // 1. Şart: İsim eşleşiyor mu?
     const baslikEslesti = baslik.includes(arananKelime);
-    
+
     // 2. Şart: Kategoriler (Film/Dizi) uyuyor mu?
     const kategoriEslesti = secilenKategori === "Hepsi" || kategoriMetni.includes(secilenKategori);
 
@@ -428,7 +503,7 @@ const filtreleriUygula = () => {
     // 4. Şart: Üstteki hap butonlardan seçilen durum uyuyor mu?
     const durumEslesti = secilenDurum === "Hepsi" || durumMetni.includes(secilenDurum);
 
-    // Bütün şartlsrdan geçiyorsa kartı göster, birinden bile kalsa gizle
+    // Bütün şartlardan geçiyorsa kartı göster, birinden bile kalsa gizle
     if (baslikEslesti && kategoriEslesti && turEslesti && durumEslesti) {
       kart.style.display = "flex";
     } else {

@@ -8,7 +8,7 @@ describe('Auth Service İş Mantığı Testleri', () => {
         await expect(
             authService.register('test_user', '12345')
         ).rejects.toMatchObject({
-            mesaj: 'Şifre en az 6 karakter içermelidir.',
+            mesaj: 'Şifre en az 6 karakterden oluşmalı.',
             status: 400
         });
     });
@@ -16,10 +16,10 @@ describe('Auth Service İş Mantığı Testleri', () => {
     // 2. TEST
     test('Veritabanında olmayan bir kullanıcıyla giriş yapılmaya çalışıldığında 404 hatası dönmeli', async () => {
         await expect(
-            // Kafadan sallama, kesinlikle olmayan bir kullanıcı adı giriyoruz
+            // Olmayan bir kullanıcı adı giriyoruz
             authService.login('kesinlikle_olmayan_bir_kullanici', 'sifre123')
         ).rejects.toMatchObject({
-            mesaj: 'Böyle bir kullanıcı bulunamadı.',
+            mesaj: 'Kullanıcı adı veya şifreniz yanlış.',
             status: 404
         });
     });
