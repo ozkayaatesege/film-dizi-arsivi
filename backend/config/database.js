@@ -1,8 +1,8 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 
-// Veritabanı dosyasının yolunu belirliyoruz
-const dbPath = path.resolve(__dirname, '../../film_arsivi.db');
+// Veritabanı dosyasının yerini kesin ve sabit olarak backend klasörü içi yapıyoruz
+const dbPath = path.join(__dirname, '../film_arsivi.db');
 
 const db = new sqlite3.Database(dbPath, (err) => {
     if (err) {
