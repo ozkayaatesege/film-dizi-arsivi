@@ -48,14 +48,14 @@ const getAllMedia = (userId) => {
             //Aynı başlık ve türdeki film veya dizileri birleştirip AVP(puan) ile ortalamalarını hesaplıyoruz
             const sql = `
                 SELECT 
-                    baslik, 
+                    MAX(baslik) as baslik,
                     tur, 
                     MAX(kategori) as kategori, 
                     'Topluluk Arşivi' as durum, 
                     ROUND(AVG(CASE WHEN durum='İzlendi' THEN puan END),1) as puan, 
                     'Kişisel notlar ziyaretçilere gizlidir.' as notlar 
                 FROM media 
-                GROUP BY baslik, tur 
+                GROUP BY LOWER(baslik), tur
                 ORDER BY MAX(id) DESC
             `;
             db.all(sql, [], (err, rows) => {
