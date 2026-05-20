@@ -1,4 +1,4 @@
-const authService = require('./authService');
+const authService = require('../services/authService');
 
 // Unit Test: Auth Service (Tüm testleri kapsayan ana blok)
 describe('Auth Service İş Mantığı Testleri', () => {

@@ -1,4 +1,4 @@
-const mediaService = require('./mediaService');
+const mediaService = require('../services/mediaService');
 
 describe('MediaService İş Mantığı Testleri', () => {
 
