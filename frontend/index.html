@@ -9,10 +9,14 @@
   <body>
     <header>
       <h1>Kişisel Arşivim</h1>
-      
-      <div style="display: flex; gap: 10px; align-items: center;">
-        <input type="text" id="aramaInput" placeholder="Arşivde film veya dizi ara..." />
-        
+
+      <div style="display: flex; gap: 10px; align-items: center">
+        <input
+          type="text"
+          id="aramaInput"
+          placeholder="Arşivde film veya dizi ara..."
+        />
+
         <select id="turFiltre">
           <option value="Hepsi">Tüm Kategoriler</option>
           <option value="Film">Filmler</option>
@@ -21,38 +25,50 @@
         </select>
 
         <div class="coklu-secim-konteynir" id="cokluSecimKapsayici">
-          <div class="coklu-secim-kutu" id="cokluSecimGosterge">
-            <span id="secilenTurlerMetni">Tüm Türler</span>
-            <span class="ok-ikon">▼</span>
-          </div>
-          <div class="coklu-secim-liste" id="cokluSecimListesi">
-            <label><input type="checkbox" value="Aksiyon"> Aksiyon</label>
-            <label><input type="checkbox" value="Macera"> Macera</label>
-            <label><input type="checkbox" value="Dram"> Dram</label>
-            <label><input type="checkbox" value="Komedi"> Komedi</label>
-            <label><input type="checkbox" value="Suç"> Suç</label>
-            <label><input type="checkbox" value="Gerilim"> Gerilim</label>
-            <label><input type="checkbox" value="Gizem"> Gizem</label>
-            <label><input type="checkbox" value="Fantastik"> Fantastik</label>
-            <label><input type="checkbox" value="Bilim Kurgu"> Bilim Kurgu</label>
-            <label><input type="checkbox" value="Savaş"> Savaş</label>
-            <label><input type="checkbox" value="Animasyon"> Animasyon</label>
-            <label><input type="checkbox" value="Aile"> Aile</label>
-            <label><input type="checkbox" value="Tarih"> Tarih</label>
-            <label><input type="checkbox" value="Korku"> Korku</label>
-          </div>
-        </div>
-      </div>
+  <div class="coklu-secim-kutu" id="cokluSecimGosterge" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    
+    <span id="secilenTurlerMetni" style="white-space: nowrap; overflow-x: auto; flex: 1; min-width: 0; margin-right: 10px; scrollbar-width: thin; padding-bottom: 2px;">Tüm Türler</span>
+    
+    <span class="ok-ikon" style="flex-shrink: 0;">▼</span>
+  </div>
+  
+  <div class="coklu-secim-liste" id="cokluSecimListesi">
+    <label><input type="checkbox" value="Aksiyon" /> Aksiyon</label>
+    <label><input type="checkbox" value="Macera" /> Macera</label>
+    <label><input type="checkbox" value="Dram" /> Dram</label>
+    <label><input type="checkbox" value="Komedi" /> Komedi</label>
+    <label><input type="checkbox" value="Suç" /> Suç</label>
+    <label><input type="checkbox" value="Gerilim" /> Gerilim</label>
+    <label><input type="checkbox" value="Gizem" /> Gizem</label>
+    <label><input type="checkbox" value="Fantastik" /> Fantastik</label>
+    <label><input type="checkbox" value="Bilim Kurgu" /> Bilim Kurgu</label>
+    <label><input type="checkbox" value="Savaş" /> Savaş</label>
+    <label><input type="checkbox" value="Animasyon" /> Animasyon</label>
+    <label><input type="checkbox" value="Aile" /> Aile</label>
+    <label><input type="checkbox" value="Tarih" /> Tarih</label>
+    <label><input type="checkbox" value="Korku" /> Korku</label>
+  </div>
+</div>
 
-      <div style="display: flex; gap: 10px;">
-        <button id="yeniEkleBtn" style="display: none;">Yeni İçerik Ekle</button>
+      <div style="display: flex; gap: 10px">
+        <button id="yeniEkleBtn" style="display: none">Yeni İçerik Ekle</button>
         <button id="authModalAcBtn" class="btn-ikincil">Giriş Yap</button>
-        <button id="cikisYapBtn" class="btn-ikincil" style="display: none;">Çıkış Yap</button>
+        <button id="cikisYapBtn" class="btn-ikincil" style="display: none">
+          Çıkış Yap
+        </button>
       </div>
     </header>
 
     <main>
-      <div id="durumFiltreKapsayici" style="display: none; justify-content: center; gap: 10px; margin-bottom: 20px;">
+      <div
+        id="durumFiltreKapsayici"
+        style="
+          display: none;
+          justify-content: center;
+          gap: 10px;
+          margin-bottom: 20px;
+        "
+      >
         <button class="durum-hap aktif" data-durum="Hepsi">Tümü</button>
         <button class="durum-hap" data-durum="İzlendi">İzlendi</button>
         <button class="durum-hap" data-durum="İzlenecek">İzlenecek</button>
@@ -71,7 +87,13 @@
         <form id="eklemeFormu">
           <div class="form-grup">
             <label for="baslik">Başlık *</label>
-            <input type="text" id="baslik" name="baslik" required placeholder="Örn: Top Gun: Maverick" />
+            <input
+              type="text"
+              id="baslik"
+              name="baslik"
+              required
+              placeholder="Örn: Top Gun: Maverick"
+            />
           </div>
 
           <div class="form-grup">
@@ -83,9 +105,51 @@
             </select>
           </div>
 
-          <div class="form-grup">
-            <label for="kategori">Kategori</label>
-            <input type="text" id="kategori" name="kategori" placeholder="Aksiyon, Dram, Komedi..." />
+          <div
+            class="form-group"
+            id="modalKategoriKapsayici"
+            style="position: relative"
+          >
+            <label>Kategori</label>
+
+            <div
+              id="modalCokluSecimGosterge"
+              style="
+                background-color: #2b2b2b;
+                border: 1px solid #444;
+                color: #fff;
+                padding: 10px;
+                border-radius: 4px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                cursor: pointer;
+              "
+            >
+              <span id="modalSecilenKategorilerMetni">Seçiniz...</span>
+              <span class="ok" style="font-size: 12px">&#9660;</span>
+            </div>
+
+            <div
+              id="modalCokluSecimListesi"
+              style="
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                background-color: #2b2b2b;
+                border: 1px solid #444;
+                border-top: none;
+                max-height: 200px;
+                overflow-y: auto;
+                border-radius: 0 0 4px 4px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+              "
+            ></div>
+
+            <input type="hidden" id="kategoriHiddenValue" name="kategori" />
           </div>
 
           <div class="form-grup">
@@ -99,56 +163,129 @@
 
           <div class="form-grup">
             <label for="puan">Puan (1-10)</label>
-            <input type="number" id="puan" name="puan" min="1" max="10" step="0.1" placeholder="Örn: 8.3" />
+            <input
+              type="number"
+              id="puan"
+              name="puan"
+              min="1"
+              max="10"
+              step="0.1"
+              placeholder="Örn: 8.3"
+            />
           </div>
 
           <div class="form-grup">
             <label for="notlar">Notlar</label>
-            <textarea id="notlar" name="notlar" rows="3" placeholder="Bu yapım hakkında ne düşünüyorsun?"></textarea>
+            <textarea
+              id="notlar"
+              name="notlar"
+              rows="3"
+              placeholder="Bu yapım hakkında ne düşünüyorsun?"
+            ></textarea>
           </div>
 
           <div class="modal-butonlar">
-            <button type="button" id="iptalBtn" class="btn-ikincil">İptal</button>
+            <button type="button" id="iptalBtn" class="btn-ikincil">
+              İptal
+            </button>
             <button type="submit" class="btn-birincil">Kaydet</button>
           </div>
         </form>
       </div>
     </div>
 
-    <div id="silmeModali" class="modal-arkaplan" style="display: none;">
-      <div class="modal-icerik" style="border-top: 5px solid #dc3545; max-width: 400px; text-align: center;">
-        <h2 style="color: #fdb912;">Emin misin?</h2>
-        <p id="silmeMetni" style="color: #dddddd; margin: 20px 0; font-size: 16px; line-height: 1.5;"></p>
-        <div class="modal-butonlar" style="justify-content: center;">
-          <button type="button" id="silmeIptalBtn" class="btn-ikincil">İptal</button>
-          <button type="button" id="silmeEvetBtn" class="btn-sil" style="flex: none; padding: 10px 30px;">Evet, Sil</button>
+    <div id="silmeModali" class="modal-arkaplan" style="display: none">
+      <div
+        class="modal-icerik"
+        style="
+          border-top: 5px solid #dc3545;
+          max-width: 400px;
+          text-align: center;
+        "
+      >
+        <h2 style="color: #fdb912">Emin misin?</h2>
+        <p
+          id="silmeMetni"
+          style="
+            color: #dddddd;
+            margin: 20px 0;
+            font-size: 16px;
+            line-height: 1.5;
+          "
+        ></p>
+        <div class="modal-butonlar" style="justify-content: center">
+          <button type="button" id="silmeIptalBtn" class="btn-ikincil">
+            İptal
+          </button>
+          <button
+            type="button"
+            id="silmeEvetBtn"
+            class="btn-sil"
+            style="flex: none; padding: 10px 30px"
+          >
+            Evet, Sil
+          </button>
         </div>
       </div>
     </div>
 
-    <div id="authModali" class="modal-arkaplan" style="display: none;">
-      <div class="modal-icerik" style="max-width: 400px; border-top: 5px solid #17a2b8;">
-        <h2 id="authBaslik" style="color: #17a2b8;">Giriş Yap</h2>
+    <div id="authModali" class="modal-arkaplan" style="display: none">
+      <div
+        class="modal-icerik"
+        style="max-width: 400px; border-top: 5px solid #17a2b8"
+      >
+        <h2 id="authBaslik" style="color: #17a2b8">Giriş Yap</h2>
 
         <form id="authFormu">
           <div class="form-grup">
             <label for="kullanici_adi">Kullanıcı Adı *</label>
-            <input type="text" id="kullanici_adi" name="kullanici_adi" required placeholder="Kullanıcı adınızı girin" />
+            <input
+              type="text"
+              id="kullanici_adi"
+              name="kullanici_adi"
+              required
+              placeholder="Kullanıcı adınızı girin"
+            />
           </div>
 
           <div class="form-grup">
             <label for="sifre">Şifre *</label>
-            <input type="password" id="sifre" name="sifre" required placeholder="Şifrenizi girin" />
+            <input
+              type="password"
+              id="sifre"
+              name="sifre"
+              required
+              placeholder="Şifrenizi girin"
+            />
           </div>
 
-          <div class="modal-butonlar" style="flex-direction: column; gap: 10px; margin-top: 25px;">
-            <button type="submit" id="authSubmitBtn" class="btn-birincil" style="background-color: #17a2b8; color: white;">Giriş Yap</button>
-            <button type="button" id="authIptalBtn" class="btn-ikincil">İptal</button>
+          <div
+            class="modal-butonlar"
+            style="flex-direction: column; gap: 10px; margin-top: 25px"
+          >
+            <button
+              type="submit"
+              id="authSubmitBtn"
+              class="btn-birincil"
+              style="background-color: #17a2b8; color: white"
+            >
+              Giriş Yap
+            </button>
+            <button type="button" id="authIptalBtn" class="btn-ikincil">
+              İptal
+            </button>
           </div>
 
-          <div style="text-align: center; margin-top: 20px; font-size: 14px;">
-            <span id="authSoruMetni" style="color: #ccc;">Hesabınız yok mu?</span>
-            <a href="#" id="authModDegistir" style="color: #fdb912; text-decoration: none; font-weight: bold;">Kayıt Ol</a>
+          <div style="text-align: center; margin-top: 20px; font-size: 14px">
+            <span id="authSoruMetni" style="color: #ccc"
+              >Hesabınız yok mu?</span
+            >
+            <a
+              href="#"
+              id="authModDegistir"
+              style="color: #fdb912; text-decoration: none; font-weight: bold"
+              >Kayıt Ol</a
+            >
           </div>
         </form>
       </div>

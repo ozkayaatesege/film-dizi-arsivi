@@ -1,13 +1,74 @@
 let guncellenecekId = null;  //Düzenlenecek filmin id'si tutuluyor
 let silinecekId = null;      //Silinecek filmin'in id'si tutuluyor
 
+// Uygulamada filtrelemede ve eklemede kullanılan sabit kategoriler
+const GECERLI_KATEGORILER = [
+  'Aksiyon', 'Macera', 'Dram', 'Komedi', 'Suç', 'Gerilim',
+  'Gizem', 'Fantastik', 'Bilim Kurgu', 'Animasyon', 'Belgesel', 'Müzikal'
+];
+
 document.addEventListener("DOMContentLoaded", () => {
+  setupModalCategories(); // Sayfa yüklendiğinde modal içindeki açılır menüyü kur
   medyalariGetir();
 });
 
-// BİLDİRİM MODALI — alert() yerine kullanılan güzel modal
+// MODAL İÇİ KATEGORİ AÇILIR MENÜSÜNÜ KURAN FONKSİYON
+function setupModalCategories() {
+  const listesi = document.getElementById('modalCokluSecimListesi');
+  if (!listesi) return;
+
+  listesi.innerHTML = '';
+  
+  // Checkboxları oluştur ve karanlık temaya uygun stillendir
+  GECERLI_KATEGORILER.forEach(kategori => {
+      const label = document.createElement('label');
+      label.style.display = 'block';
+      label.style.padding = '8px 10px';
+      label.style.margin = '0';
+      label.style.cursor = 'pointer';
+      label.style.borderBottom = '1px solid #3a3a3a'; // Alt çizgi detayı
+      
+      label.innerHTML = `<input type="checkbox" value="${kategori}" class="modal-kategori-cb" style="margin-right:10px;"> ${kategori}`;
+      
+      // Üzerine gelince hafif renk değişimi (Hover)
+      label.addEventListener('mouseenter', () => label.style.backgroundColor = '#383838');
+      label.addEventListener('mouseleave', () => label.style.backgroundColor = 'transparent');
+      
+      listesi.appendChild(label);
+  });
+
+  // Açılır menüyü açma/kapama
+  const gosterge = document.getElementById('modalCokluSecimGosterge');
+  gosterge.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const gorunurMu = listesi.style.display === "block";
+      listesi.style.display = gorunurMu ? "none" : "block";
+  });
+
+  // Checkbox'lar seçildikçe metni ve gizli inputu güncelle
+  const checkboxes = document.querySelectorAll('.modal-kategori-cb');
+  const metin = document.getElementById('modalSecilenKategorilerMetni');
+  const hiddenInput = document.getElementById('kategoriHiddenValue');
+
+  checkboxes.forEach(cb => {
+      cb.addEventListener('change', () => {
+          const secilenler = Array.from(checkboxes).filter(c => c.checked).map(c => c.value);
+          hiddenInput.value = secilenler.join(', ');
+          metin.innerText = secilenler.length > 0 ? secilenler.join(', ') : 'Seçiniz...';
+      });
+  });
+
+  // Boşluğa tıklayınca menüyü kapat
+  document.addEventListener("click", (e) => {
+      const kapsayici = document.getElementById("modalKategoriKapsayici");
+      if (kapsayici && !kapsayici.contains(e.target)) {
+          listesi.style.display = "none";
+      }
+  });
+}
+
+// BİLDİRİM MODALI 
 function mesajGoster(mesaj, tip = "hata") {
-  // Varsa önceki modalı temizle
   const eskiModal = document.getElementById("bildirimModali");
   if (eskiModal) eskiModal.remove();
 
@@ -61,41 +122,32 @@ function mesajGoster(mesaj, tip = "hata") {
   kapatBtn.addEventListener("mouseenter", () => kapatBtn.style.background = r.butonHover);
   kapatBtn.addEventListener("mouseleave", () => kapatBtn.style.background = r.buton);
 
-  // Arka plana tıklayınca da kapat
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.remove();
   });
 }
 
 // ARAYÜZ YETKİ KONTROL MOTORU
-// Bu fonksiyon, kullanıcının giriş yapıp yapmadığını kontrol eder ve butonları ona göre gizler/gösterir
 function arayuzuGuncelle() {
   const token = localStorage.getItem("token");
   const kartButonGruptari = document.querySelectorAll(".kart-butonlar");
 
-  // Header butonlarını ayarla
   const yeniEkleBtn = document.getElementById("yeniEkleBtn");
   const authModalAcBtn = document.getElementById("authModalAcBtn");
   const cikisYapBtn = document.getElementById("cikisYapBtn");
   const durumFiltreKapsayici = document.getElementById("durumFiltreKapsayici");
 
   if (token) {
-    // Token var -> Kullanıcı giriş yapmış (Admin yetkileri açık)
     yeniEkleBtn.style.display = "block";
     cikisYapBtn.style.display = "block";
     authModalAcBtn.style.display = "none";
-    durumFiltreKapsayici.style.display = "flex";
-
-    // Tüm kartlardaki Düzenle/Sil butonlarını görünür yap
+    if (durumFiltreKapsayici) durumFiltreKapsayici.style.display = "flex";
     kartButonGruptari.forEach((grup) => (grup.style.display = "flex"));
   } else {
-    // Token yok -> Ziyaretçi modu (Sadece okuma)
     yeniEkleBtn.style.display = "none";
     cikisYapBtn.style.display = "none";
     authModalAcBtn.style.display = "block";
-    durumFiltreKapsayici.style.display = "none";
-
-    // Tüm kartlardaki Düzenle/Sil butonlarını gizle
+    if (durumFiltreKapsayici) durumFiltreKapsayici.style.display = "none";
     kartButonGruptari.forEach((grup) => (grup.style.display = "none"));
   }
 }
@@ -128,14 +180,23 @@ async function medyalariGetir() {
       let puanVeNotGosterimi = '';
       if (medya.durum !== 'İzlenecek') {
         const token = localStorage.getItem('token');
-
         let notGosterimi = '';
+        
+        // Sadece giriş yapmış kullanıcı kendi arşivine bakıyorsa notu görsün
         if (token) {
           notGosterimi = `<p><strong>Not:</strong> ${medya.notlar || 'Not yok.'}</p>`;
         }
+        
+        // Puan null, 0 veya boşsa şık bir metin göster
+        let puanMetni = '';
+        if (medya.puan === null || medya.puan === 0 || medya.puan === "null") {
+            puanMetni = 'Henüz puanlanmadı';
+        } else {
+            puanMetni = `${medya.puan}/10`;
+        }
 
         puanVeNotGosterimi = `
-          <p><strong>Puan:</strong> ${medya.puan}/10</p>
+          <p><strong>Puan:</strong> ${puanMetni}</p>
           ${notGosterimi}
         `;
       }
@@ -158,10 +219,21 @@ async function medyalariGetir() {
 
         document.getElementById("baslik").value = medya.baslik;
         document.getElementById("tur").value = medya.tur;
-        document.getElementById("kategori").value = medya.kategori || "";
         document.getElementById("durum").value = medya.durum;
         document.getElementById("puan").value = medya.puan || "";
         document.getElementById("notlar").value = medya.notlar || "";
+
+        // Seçili kategorileri açılır menüye işle (Checkbox mantığı)
+        const mevcutKategoriler = (medya.kategori || "").split(',').map(k => k.trim()).filter(k => k);
+        const hiddenInput = document.getElementById("kategoriHiddenValue");
+        const seciliMetin = document.getElementById("modalSecilenKategorilerMetni");
+        
+        if (hiddenInput) hiddenInput.value = mevcutKategoriler.join(', ');
+        if (seciliMetin) seciliMetin.innerText = mevcutKategoriler.length > 0 ? mevcutKategoriler.join(', ') : "Kategori Seçin";
+        
+        document.querySelectorAll('.modal-kategori-cb').forEach(cb => {
+            cb.checked = mevcutKategoriler.includes(cb.value);
+        });
 
         document.querySelector("#eklemeModali .modal-icerik h2").innerText = "İçeriği Düzenle";
         document.getElementById("eklemeModali").style.display = "flex";
@@ -204,25 +276,22 @@ const authBaslik = document.getElementById("authBaslik");
 const authSubmitBtn = document.getElementById("authSubmitBtn");
 const authSoruMetni = document.getElementById("authSoruMetni");
 
-let isLoginMode = true; // true = Giriş Yap, false = Kayıt Ol
+let isLoginMode = true; 
 
-// Modalı aç
 authModalAcBtn.addEventListener("click", () => {
-  isLoginMode = true; // Her açıldığında varsayılan olarak "Giriş Yap" modunda başlasın
+  isLoginMode = true; 
   authFormunuAyarla();
   authModali.style.display = "flex";
 });
 
-// Modalı kapat
 authIptalBtn.addEventListener("click", () => {
   authModali.style.display = "none";
   authFormu.reset();
 });
 
-// Giriş <-> Kayıt Ol arası geçiş yap
 authModDegistir.addEventListener("click", (e) => {
   e.preventDefault();
-  isLoginMode = !isLoginMode; // Modu tam tersine çevir
+  isLoginMode = !isLoginMode; 
   authFormunuAyarla();
 });
 
@@ -240,13 +309,11 @@ function authFormunuAyarla() {
   }
 }
 
-// Form Gönderildiğinde (Giriş veya Kayıt)
 authFormu.addEventListener("submit", async (e) => {
   e.preventDefault();
   const kullanici_adi = document.getElementById("kullanici_adi").value;
   const sifre = document.getElementById("sifre").value;
 
-  // Hangi yola (endpoint) istek atacağımızı moda göre belirliyoruz
   const url = isLoginMode ? "/api/auth/login" : "/api/auth/register";
 
   try {
@@ -264,18 +331,16 @@ authFormu.addEventListener("submit", async (e) => {
     }
 
     if (isLoginMode) {
-      // Giriş başarılıysa token'ı kasaya sakla
       localStorage.setItem("token", veri.token);
       authModali.style.display = "none";
       authFormu.reset();
-      arayuzuGuncelle(); // Arayüzü admin moduna geçir
-      medyalariGetir(); //Yeni kullanıcının verilerini getir
+      arayuzuGuncelle(); 
+      medyalariGetir(); 
     } else {
-      // Kayıt başarılıysa kullanıcıyı bilgilendir ve giriş moduna at
       mesajGoster("Kayıt başarılı! Lütfen şimdi giriş yapın.", "basari");
       isLoginMode = true;
       authFormunuAyarla();
-      document.getElementById("sifre").value = ""; // Şifre kutusunu temizle
+      document.getElementById("sifre").value = ""; 
     }
   } catch (error) {
     console.error("Auth hatası:", error);
@@ -283,11 +348,10 @@ authFormu.addEventListener("submit", async (e) => {
   }
 });
 
-// Çıkış Yap İşlemi
 cikisYapBtn.addEventListener("click", () => {
-  localStorage.removeItem("token"); // Kasadaki bileti yırt
-  arayuzuGuncelle(); // Arayüzü tekrar ziyaretçi moduna geçir
-  medyalariGetir(); //Topluluk arşivini getir
+  localStorage.removeItem("token"); 
+  arayuzuGuncelle(); 
+  medyalariGetir(); 
 });
 
 // EKLEME/DÜZENLEME İŞLEMLERİ
@@ -299,8 +363,17 @@ const eklemeFormu = document.getElementById("eklemeFormu");
 yeniEkleBtn.addEventListener("click", () => {
   guncellenecekId = null;
   eklemeFormu.reset();
-  document.querySelector("#eklemeModali .modal-icerik h2").innerText =
-    "Yeni İçerik Ekle";
+
+  // Modal açılırken kategorileri sıfırla (Checkbox mantığı)
+  const hiddenInput = document.getElementById("kategoriHiddenValue");
+  if(hiddenInput) hiddenInput.value = "";
+  
+  const seciliMetin = document.getElementById("modalSecilenKategorilerMetni");
+  if(seciliMetin) seciliMetin.innerText = "Kategori Seçin";
+  
+  document.querySelectorAll('.modal-kategori-cb').forEach(cb => cb.checked = false);
+  
+  document.querySelector("#eklemeModali .modal-icerik h2").innerText = "Yeni İçerik Ekle";
   eklemeModali.style.display = "flex";
 });
 
@@ -312,10 +385,19 @@ iptalBtn.addEventListener("click", () => {
 eklemeFormu.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // BAŞLIK FORMATLAMA ALGORİTMASI
+  const hamBaslik = document.getElementById("baslik").value;
+  const duzeltilmisBaslik = hamBaslik
+    .trim() // Başındaki ve sonundaki gereksiz boşlukları siler
+    .toLowerCase() // Önce her şeyi küçük harfe çevirir (senin mantık)
+    .split(/\s+/) // Kelimeleri boşluklardan ayırır (fazla boşlukları da tekler)
+    .map(kelime => kelime.charAt(0).toUpperCase() + kelime.slice(1)) // Her kelimenin ilk harfini büyütür
+    .join(' '); // Kelimeleri tekrar aralarına tek boşluk koyarak birleştirir
+
   const medyaVerisi = {
-    baslik: document.getElementById("baslik").value,
+    baslik: duzeltilmisBaslik, // Artık düzeltilmiş jilet gibi başlığı gönderiyoruz
     tur: document.getElementById("tur").value,
-    kategori: document.getElementById("kategori").value,
+    kategori: document.getElementById("kategoriHiddenValue").value, 
     durum: document.getElementById("durum").value,
     puan: document.getElementById("puan").value
       ? parseFloat(document.getElementById("puan").value)
@@ -325,14 +407,14 @@ eklemeFormu.addEventListener("submit", async (e) => {
 
   const url = guncellenecekId ? `/api/media/${guncellenecekId}` : "/api/media";
   const method = guncellenecekId ? "PUT" : "POST";
-  const token = localStorage.getItem("token"); // Token'ı kasadan al
+  const token = localStorage.getItem("token"); 
 
   try {
     const response = await fetch(url, {
       method: method,
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`, // Bekçiye token'ı gösteriyoruz
+        Authorization: `Bearer ${token}`, 
       },
       body: JSON.stringify(medyaVerisi),
     });
@@ -389,7 +471,7 @@ silmeEvetBtn.addEventListener("click", async () => {
     const response = await fetch(`/api/media/${silinecekId}`, {
       method: "DELETE",
       headers: {
-        Authorization: `Bearer ${token}`, // Silme işlemi için de bekçiye token gösteriyoruz
+        Authorization: `Bearer ${token}`, 
       },
     });
 
@@ -415,7 +497,7 @@ silmeEvetBtn.addEventListener("click", async () => {
   }
 });
 
-// ÇOKLU SEÇİM VE FİLTRELEME MOTORU
+// ÇOKLU SEÇİM VE FİLTRELEME MOTORU (Ana Ekrandaki Filtreler)
 const aramaInput = document.getElementById("aramaInput");
 const turFiltre = document.getElementById("turFiltre");
 const cokluSecimGosterge = document.getElementById("cokluSecimGosterge");
@@ -425,13 +507,16 @@ const checkboxes = document.querySelectorAll("#cokluSecimListesi input");
 
 let secilenTurler = [];
 
-cokluSecimGosterge.addEventListener("click", () => {
-  const gorunurMu = cokluSecimListesi.style.display === "block";
-  cokluSecimListesi.style.display = gorunurMu ? "none" : "block";
-});
+if (cokluSecimGosterge && cokluSecimListesi) {
+  cokluSecimGosterge.addEventListener("click", () => {
+    const gorunurMu = cokluSecimListesi.style.display === "block";
+    cokluSecimListesi.style.display = gorunurMu ? "none" : "block";
+  });
+}
 
 document.addEventListener("click", (e) => {
-  if (!document.getElementById("cokluSecimKapsayici").contains(e.target)) {
+  const cokluKapsayici = document.getElementById("cokluSecimKapsayici");
+  if (cokluKapsayici && cokluSecimListesi && !cokluKapsayici.contains(e.target)) {
     cokluSecimListesi.style.display = "none";
   }
 });
@@ -445,9 +530,9 @@ checkboxes.forEach((cb) => {
     }
 
     if (secilenTurler.length === 0) {
-      secilenTurlerMetni.innerText = "Tüm Türler";
+      if (secilenTurlerMetni) secilenTurlerMetni.innerText = "Tüm Türler";
     } else {
-      secilenTurlerMetni.innerText = secilenTurler.join(", ");
+      if (secilenTurlerMetni) secilenTurlerMetni.innerText = secilenTurler.join(", ");
     }
 
     filtreleriUygula();
@@ -455,44 +540,35 @@ checkboxes.forEach((cb) => {
 });
 
 const durumHaplari = document.querySelectorAll(".durum-hap");
-let secilenDurum = "Hepsi"; // Varsayılan olarak her şeyi göster
+let secilenDurum = "Hepsi"; 
 
 durumHaplari.forEach((hap) => {
   hap.addEventListener("click", () => {
     durumHaplari.forEach((h) => h.classList.remove("aktif"));
-    // Tıklanan butonu sarı yap
     hap.classList.add("aktif");
-
-    // Tıklanan butonun değerini al (İzlendi, İzlenecek vb.)
     secilenDurum = hap.getAttribute("data-durum");
-
-    // Değişiklik sonrası listeyi tekrar süz
     filtreleriUygula();
   });
 });
 
 // ANA FİLTRELEME FONKSİYONU
 const filtreleriUygula = () => {
-  const arananKelime = aramaInput.value.toLocaleLowerCase('tr-TR');
-  const secilenKategori = turFiltre.value;
+  const arananKelime = aramaInput ? aramaInput.value.toLocaleLowerCase('tr-TR') : "";
+  const secilenKategori = turFiltre ? turFiltre.value : "Hepsi";
 
   const kartlar = document.querySelectorAll(".medya-kart");
 
   kartlar.forEach((kart) => {
     const baslik = kart.querySelector("h3").innerText.toLocaleLowerCase('tr-TR');
 
-    // Kartın içindeki p etiketlerinden verileri çekiyoruz
-    const kategoriMetni = kart.querySelectorAll("p")[0].innerText; // Tür: Film
-    const altTurMetni = kart.querySelectorAll("p")[1].innerText;   // Kategori: Aksiyon
-    const durumMetni = kart.querySelectorAll("p")[2].innerText;    // Durum: İzlendi
+    const pEtiketleri = kart.querySelectorAll("p");
+    const kategoriMetni = pEtiketleri[0] ? pEtiketleri[0].innerText : "";
+    const altTurMetni = pEtiketleri[1] ? pEtiketleri[1].innerText : ""; 
+    const durumMetni = pEtiketleri[2] ? pEtiketleri[2].innerText : ""; 
 
-    // 1. Şart: İsim eşleşiyor mu?
     const baslikEslesti = baslik.includes(arananKelime);
-
-    // 2. Şart: Kategoriler (Film/Dizi) uyuyor mu?
     const kategoriEslesti = secilenKategori === "Hepsi" || kategoriMetni.includes(secilenKategori);
 
-    // 3. Şart: Çoklu seçim (Aksiyon, Dram vb.) uyuyor mu?
     let turEslesti = false;
     if (secilenTurler.length === 0) {
       turEslesti = true;
@@ -500,10 +576,8 @@ const filtreleriUygula = () => {
       turEslesti = secilenTurler.some((tur) => altTurMetni.includes(tur));
     }
 
-    // 4. Şart: Üstteki hap butonlardan seçilen durum uyuyor mu?
     const durumEslesti = secilenDurum === "Hepsi" || durumMetni.includes(secilenDurum);
 
-    // Bütün şartlardan geçiyorsa kartı göster, birinden bile kalsa gizle
     if (baslikEslesti && kategoriEslesti && turEslesti && durumEslesti) {
       kart.style.display = "flex";
     } else {
@@ -512,5 +586,5 @@ const filtreleriUygula = () => {
   });
 };
 
-aramaInput.addEventListener("input", filtreleriUygula);
-turFiltre.addEventListener("change", filtreleriUygula);
+if (aramaInput) aramaInput.addEventListener("input", filtreleriUygula);
+if (turFiltre) turFiltre.addEventListener("change", filtreleriUygula);
