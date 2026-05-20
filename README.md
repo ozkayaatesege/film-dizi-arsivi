@@ -15,17 +15,28 @@ Sistem, RESTful API sunan bir Node.js backend ve Vanilla JavaScript ile gelişti
 
 ## Proje Yapısı
 
-```
+```text
 film-dizi-arsivi/
 ├── backend/
+│   ├── config/             # Veritabanı bağlantı ayarları
 │   ├── controllers/        # İstek/yanıt yönetimi
+│   ├── models/             # Veritabanı modelleri
+│   ├── node_modules/       # Yüklü paketler (Git'e dahil edilmez)
 │   ├── routes/             # API uç noktaları
-│   ├── services/           # İş mantığı katmanı
-│   └── security/           # JWT doğrulama middleware
+│   ├── security/           # JWT doğrulama middleware
+│   ├── services/           # İş mantığı (Business Logic) katmanı
+│   ├── tests/              # Jest birim testleri
+│   ├── .env                # Ortam değişkenleri
+│   ├── film_arsivi.db      # SQLite veritabanı dosyası
+│   ├── package-lock.json   # Bağımlılık ağacı kilit dosyası
+│   ├── package.json        # Proje bağımlılıkları ve scriptler
+│   └── server.js           # Uygulamanın başlangıç noktası
 ├── frontend/               # Vanilla JS SPA arayüzü
-├── film_arsivi.db          # SQLite veritabanı dosyası
-├── server.js               # Uygulamanın başlangıç noktası
-└── .env                    # Ortam değişkenleri
+│   ├── app.js              # Arayüz iş mantığı ve API istekleri
+│   ├── index.html          # Ana sayfa iskeleti
+│   └── style.css           # Stil ve tasarım dosyası
+├── .gitignore              # Git tarafından yok sayılacak dosyalar
+└── README.md               # Proje dokümantasyonu
 ```
 
 ## Kurulum ve Çalıştırma
@@ -36,25 +47,32 @@ film-dizi-arsivi/
 
 ### Adımlar
 
-**1. Bağımlılıkları yükleyin:**
+**1. Projeyi klonlayın ve backend klasörüne gidin:**
+```bash
+git clone [https://github.com/ozkayaatesege/film-dizi-arsivi.git](https://github.com/ozkayaatesege/film-dizi-arsivi.git)
+cd film-dizi-arsivi/backend
+```
+*(Not: Tüm Node.js bağımlılıkları ve sunucu dosyaları `backend` klasörü içerisindedir.)*
+
+**2. Bağımlılıkları yükleyin:**
 ```bash
 npm install
 ```
 
-**2. `.env` dosyası oluşturun:**
-```
+**3. `.env` dosyası oluşturun (`backend` klasörü içinde):**
+```text
 PORT=3000
 JWT_SECRET=gizli_anahtariniz
 ```
 
-**3. Sunucuyu başlatın:**
+**4. Sunucuyu başlatın:**
 ```bash
 npm start
 ```
 
-Uygulama `http://localhost:3000` adresinde çalışmaya başlar.
+Uygulama `http://localhost:3000` adresinde çalışmaya başlar. Veritabanı ilk çalıştırmada otomatik olarak oluşturulacaktır.
 
-**4. Testleri çalıştırın:**
+**5. Testleri çalıştırın (İsteğe bağlı):**
 ```bash
 npm test
 ```
@@ -95,6 +113,20 @@ Ekleme, güncelleme ve silme işlemleri için `Authorization: Bearer <token>` ba
   "notlar": "Muhteşem bir yapım."
 }
 ```
+
+## Testler
+
+Testler, uygulamanın iş mantığı (service katmanı) kurallarının doğru çalışıp çalışmadığını denetlemek için **Jest** kullanılarak yazılmıştır.
+
+```bash
+# backend/ klasöründe çalıştırılmalıdır
+npm test      # 7 adet iş mantığı (unit) testini çalıştırır
+```
+
+### Test Kapsamı
+
+- `authService` : Kullanıcı kayıt ve giriş validasyonları.
+- `mediaService` : Medya ekleme ve denetim iş kuralları.
 
 ## Geliştirici
 
