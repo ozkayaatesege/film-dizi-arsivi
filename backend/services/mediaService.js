@@ -7,7 +7,7 @@ const runRules=(...rules)=>{
     return null;
 };
 
-//İŞ KURALLARI
+// İŞ KURALLARI
 const checkUnwatchedScore=(durum,puan)=>{
     if(durum === 'İzlenecek' && puan>0){
         return {status:400,mesaj:'Henüz izlemediğiniz bir yapıma puan veremezsiniz.'};
@@ -29,12 +29,28 @@ const checkScoreLimit=(puan)=>{
     return null;
 };
 
+const checkDuplicateMedia=(baslik, tur, userId)=>{
+    return new Promise((resolve, reject)=>{
+        db.get(
+            `SELECT id FROM media 
+             WHERE LOWER(baslik) = LOWER(?) 
+             AND tur = ? 
+             AND kullanici_id = ?`,
+            [baslik, tur, userId],
+            (err, row)=>{
+                if(err) return reject(err); // Güvenlik ağı: SQL hatası olursa sistemi kitlemesin
+                if(row) return resolve({status:400, mesaj:'Bu içerik zaten arşivinde mevcut!'});
+                resolve(null);
+            }
+        );
+    });
+};
 
-// Tüm filmleri ve dizileri veritabanından çeken fonksiyon (Vİtrin ve Kişisel panel ayrımı)
+// Tüm filmleri ve dizileri veritabanından çeken fonksiyon (Vitrin ve Kişisel panel ayrımı)
 const getAllMedia = (userId) => {
     return new Promise((resolve, reject) => {
         if(userId){
-            //Kişisel panel: Sadece bu kullanıcının girdiği verileri getir
+            // Kişisel panel: Sadece bu kullanıcının girdiği verileri getir
             const sql='SELECT * FROM media WHERE kullanici_id = ? ORDER BY id DESC';
             db.all(sql,[userId],(err,rows)=>{
                 if(err){
@@ -44,8 +60,7 @@ const getAllMedia = (userId) => {
                 }
             });
         }else{
-            //Vitrin: Ziyaretçiler için tüm filmleri ve dizileri grupla ve puan ortalamasını al
-            //Aynı başlık ve türdeki film veya dizileri birleştirip AVP(puan) ile ortalamalarını hesaplıyoruz
+            // Vitrin: Ziyaretçiler için tüm filmleri ve dizileri grupla ve puan ortalamasını al
             const sql = `
                 SELECT 
                     MAX(baslik) as baslik,
@@ -69,47 +84,55 @@ const getAllMedia = (userId) => {
     });
 };
 
-//veri tabanına yeni kayıt eklmeme fonksiyonu (Sahibinin kimliği ile beraber)
-const addMedia=(mediaData,userId)=>{
-    return new Promise((resolve,reject)=>{
+// Veritabanına yeni kayıt ekleme fonksiyonu (Sahibinin kimliği ile beraber)
+const addMedia = (mediaData, userId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const durum = mediaData.durum || 'İzlenecek';
+            const puan = mediaData.puan || 0;
 
-       const durum = mediaData.durum || 'İzlenecek';
-       const puan = mediaData.puan || 0;
+            const duplicateCheck = await checkDuplicateMedia(
+                mediaData.baslik,
+                mediaData.tur,
+                userId
+            );
 
-       const ruleResult=runRules(
-        checkUnwatchedScore(durum,puan),
-        chechEmptyTitle(mediaData.baslik),
-        checkScoreLimit(puan)
-       );
+            const ruleResult = runRules(
+                duplicateCheck,
+                checkUnwatchedScore(durum, puan),
+                chechEmptyTitle(mediaData.baslik),
+                checkScoreLimit(puan)
+            );
 
-       if(ruleResult !==null){
-        return reject(ruleResult);
-       }
-
-       //Veri tabanına ekleme
-        const query='INSERT INTO media (kullanici_id,baslik,tur,kategori,durum,puan,notlar) VALUES (?, ?, ?, ?, ?, ?,?)';
-        const values=[
-            userId,
-            mediaData.baslik,
-            mediaData.tur,
-            mediaData.kategori || null,
-            mediaData.durum || 'İzlenecek',
-            mediaData.puan || 0,
-            mediaData.notlar || ''
-        ];
-
-        //Veri eklerken db.run kullanılır.
-        db.run(query,values,function(err){
-            if(err){
-                reject(err);
-            }else{
-                resolve({id:this.lastID, kullanici_id:userId, ...mediaData});
+            if(ruleResult !== null){
+                return reject(ruleResult);
             }
-        });
+
+            const query='INSERT INTO media (kullanici_id,baslik,tur,kategori,durum,puan,notlar) VALUES (?, ?, ?, ?, ?, ?,?)';
+            const values=[
+                userId,
+                mediaData.baslik,
+                mediaData.tur,
+                mediaData.kategori || null,
+                mediaData.durum || 'İzlenecek',
+                mediaData.puan || 0,
+                mediaData.notlar || ''
+            ];
+
+            db.run(query, values, function(err){
+                if(err){
+                    reject(err);
+                }else{
+                    resolve({id:this.lastID, kullanici_id:userId, ...mediaData});
+                }
+            });
+        } catch (error) {
+            reject(error);
+        }
     });
 };
 
-//Sadecebu veriyi giren güncelleyebilir
+// Sadece bu veriyi giren güncelleyebilir
 const updateMedia=(id,data,userId)=>{
     return new Promise((resolve,reject)=>{
 
@@ -123,8 +146,7 @@ const updateMedia=(id,data,userId)=>{
             return reject(ruleResult);
         }
 
-
-        //SQL Lite'nin update komutu ile o id'ye ait satırlar güncellenir
+        // SQL Lite'nin update komutu ile o id'ye ait satırlar güncellenir
         const sql = `UPDATE media 
                      SET baslik = ?, tur = ?, kategori = ?, durum = ?, puan = ?, notlar = ? 
                      WHERE id = ? AND kullanici_id = ?`;
@@ -137,11 +159,10 @@ const updateMedia=(id,data,userId)=>{
                 resolve({id:id,changes:this.changes});
             }
         });
-
     });
 };
 
-//Sadecebu veriyi giren silebilir
+// Sadece bu veriyi giren silebilir
 const deleteMedia=(id,userId)=>{
     return new Promise((resolve,reject)=>{
         const sql = `DELETE FROM media WHERE id = ? AND kullanici_id = ?`;

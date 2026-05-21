@@ -47,6 +47,11 @@ const addMedia=async(req,res)=>{
         //201 Created (Başarıyla oluşturuldu) kodu dönüyoruz.
         res.status(201).json({mesaj:"Başarıyla Eklendi!",veri:eklenenVeri});
     }catch (error) {
+        // Eğer servis katmanından yazdığımız özel bir iş kuralı hatası geldiyse:
+        if (error.status && error.mesaj) {
+            return res.status(error.status).json({ mesaj: error.mesaj });
+        }
+        // Eğer beklenmedik bir veritabanı vs. hatasıysa eski jenerik mesajı bas:
         res.status(500).json({ mesaj: "Veri eklenirken bir hata oluştu", hata: error.message });
     }
 };
@@ -70,12 +75,14 @@ const updateMedia=async (req,res)=>{
         }
         res.status(200).json({mesaj:"Kayıt başarıyla güncellendi!",veri:{id,...guncelVeri}});
     }catch(error){
+        if (error.status && error.mesaj) {
+            return res.status(error.status).json({ mesaj: error.mesaj });
+        }
         res.status(500).json({hata:error.message});
     }
 };
 
 //Silme methodu
-
 const deleteMedia=async(req,res)=>{
     try{
         const id=req.params.id;
