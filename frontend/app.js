@@ -136,6 +136,7 @@ function arayuzuGuncelle() {
   const authModalAcBtn = document.getElementById("authModalAcBtn");
   const cikisYapBtn = document.getElementById("cikisYapBtn");
   const durumFiltreKapsayici = document.getElementById("durumFiltreKapsayici");
+  const baslik = document.querySelector("h1"); 
 
   if (token) {
     yeniEkleBtn.style.display = "block";
@@ -143,12 +144,14 @@ function arayuzuGuncelle() {
     authModalAcBtn.style.display = "none";
     if (durumFiltreKapsayici) durumFiltreKapsayici.style.display = "flex";
     kartButonGruptari.forEach((grup) => (grup.style.display = "flex"));
+    baslik.innerText = "Kişisel Arşivim";
   } else {
     yeniEkleBtn.style.display = "none";
     cikisYapBtn.style.display = "none";
     authModalAcBtn.style.display = "block";
     if (durumFiltreKapsayici) durumFiltreKapsayici.style.display = "none";
     kartButonGruptari.forEach((grup) => (grup.style.display = "none"));
+    baslik.innerText = "Topluluk Arşivi";
   }
 }
 
